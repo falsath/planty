@@ -1,0 +1,85 @@
+<%- include('../adminLayouts/homehead.ejs') %>
+
+
+<div class="container" >
+
+        <form action="/admin/add-location" method="post" id="form"  class="mx-auto mt-5 p-4 bg-light" style="max-width: 600px;" >
+          <h2 class="mb-3">Add Location</h2>
+          <div class="mb-3">
+      <label for="exampleInputFirstname" class="form-label">District</label>
+      <input type="text" class="form-control" id="exampleInputFirstname"  name="district" >
+       <div class="error text-danger"></div>
+    </div>
+         <div class="mb-3">
+      <label for="exampleInputFirstname1" class="form-label">Pincode (Separate with commas)</label>
+          <textarea class="form-control" id="exampleInputFirstname1" name="pincode" ></textarea>
+       <div class="error text-danger"></div>
+    </div>
+    <br><br>
+        <% if (typeof message !=='undefined' ) { %>
+          <p style="color:rgb(128, 23, 0);font-weight: bold;">
+            <%= message %>
+          </p>
+          <% } %>
+
+     <button type="submit" class="btn btn-primary">ADD</button> 
+    </form>
+  
+</div>
+  
+  <script>
+  
+  const form = document.getElementById('form');
+  const District = document.getElementById('exampleInputFirstname');
+   const Pincode = document.getElementById('exampleInputFirstname1');
+  
+   form.addEventListener('submit',e=>{
+      e.preventDefault();
+      validateInputs();
+      });
+  
+  const setError = (element,message)=>{
+  const inputControl = element.parentElement;
+  const errorDisplay = inputControl.querySelector('.error');
+  
+  errorDisplay.innerText = message;
+  inputControl.classList.add('error');
+  inputControl.classList.remove('success');
+  }
+  
+  const setSuccess = element=>{
+  const inputControl = element.parentElement;
+  const errorDisplay = inputControl.querySelector('.error');
+  
+  errorDisplay.innerText = '';
+  inputControl.classList.add('success');
+  inputControl.classList.remove('error')
+  }
+  
+  const validateInputs=()=>{
+  const districtValue = District.value.trim();
+  const pincodeValue = Pincode.value.trim();
+  
+  if(districtValue === ''){
+  setError(District, 'District is required');
+  }else{
+  setSuccess(District)
+  }
+  
+  if(pincodeValue === ''){
+  setError(Pincode, 'Pincode is required');
+  }else{
+  setSuccess(Pincode)
+  }
+  
+  const allInputsValid = document.querySelectorAll('.success').length === 2; // Adjust the count based on the number of input fields
+   if (allInputsValid) {
+     form.submit(); // Manually submit the form
+   }
+  
+  }
+  
+  
+  </script>
+
+<%- include('../adminLayouts/homefooter.ejs') %>

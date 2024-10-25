@@ -1,0 +1,73 @@
+<%- include('../userLayouts/userhead.ejs') %>
+
+<div class="row">
+  <% coupons.forEach(coupon => { %>
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Coupon Code: <%= coupon.code %></h5>
+          <p class="card-text">Discount: <%= coupon.discount %>%</p>
+          <button class="btn btn-primary btn-select-coupon" data-coupon-code="<%= coupon.code %>">
+            Apply Coupon
+          </button>
+        </div>
+      </div>
+    </div>
+  <% }); %>
+</div>
+
+<%- include('../userLayouts/userFoot.ejs') %>
+
+<script>
+ document.addEventListener('DOMContentLoaded', function () {
+  const selectCouponButtons = document.querySelectorAll('.btn-select-coupon');
+
+  selectCouponButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      const selectedCouponCode = button.dataset.couponCode;
+
+      // Apply the selected coupon
+      applyCoupon(selectedCouponCode);
+    });
+  });
+
+  function applyCoupon(couponCode) {
+    fetch('/apply-coupon', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ couponCode }),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to apply coupon. Server returned ${response.status} - ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+
+          // Update the cart details in the UI
+          updateCartDetails(data.cartData);
+
+          // Assuming you have a function to update the UI with the new total amount
+          updateTotalAmount(data.cartData.totalPrice);
+        } else {
+          alert(`Coupon application failed: ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to apply coupon. Please try again later.');
+      });
+  }
+
+  function updateCartDetails(cartData) {
+    // Assuming you have DOM elements with class names 'total-price' and 'discount'
+    document.querySelector('.total-price').textContent = cartData.totalPrice;
+    document.querySelector('.discount').textContent = cartData.coupon ? `-${cartData.coupon.discount}%` : '';
+  }
+});
+</script>

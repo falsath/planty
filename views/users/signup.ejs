@@ -1,0 +1,207 @@
+<%- include('../userLayouts/header.ejs') %>
+
+<style>
+  textarea {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #56d46b;
+  border-radius: 4px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+</style>
+
+  <div class="container">
+    <h1 class="form-title">SIGN UP</h1>
+    <form id="signupForm" action="" method="post" enctype="application/x-www-form-urlencoded"
+      onsubmit="return validateForm()">
+      <div class="main-user-info">
+        <div class="user-input-box">
+          <input type="text" id="name" name="name" placeholder="Enter Name" />
+          <span id="nameError" class="error-message" style="color: red; margin-top: 10px;"></span>
+        </div>
+        <div class="user-input-box">
+          <input type="text" id="username" name="username" placeholder="Enter Username" />
+          <span id="usernameError" class="error-message" style="color: red; margin-top: 10px;"></span>
+        </div>
+        <!-- <div class="user-input-box">
+          <input type="text" id="DOB" name="dob" placeholder="Enter DOB" />
+          <span id="dobError" class="error-message" style="color: red; margin-top: 10px;"></span>
+        </div> -->
+        <div class="user-input-box">
+          <input type="email" id="email" name="email" placeholder="Enter Email" />
+          <span id="emailError" class="error-message" style="color: red; margin-top: 10px;"></span>
+        </div>
+        <div class="user-input-box">
+          <input type="text" id="phoneNumber" name="mobile" placeholder="Enter Phone Number" />
+          <span id="phoneNumberError" class="error-message" style="color: red; margin-top: 10px;"></span>
+        </div>
+        <div class="user-input-box">
+          <input type="password" id="password" name="password" placeholder="Enter Password" />
+          <span id="passwordError" class="error-message" style="color: red; margin-top: 10px;"></span>
+        </div>
+        <!-- <div class="user-input-box">
+          <textarea id="address" name="address" placeholder="Enter Address"></textarea>
+          <span id="addressError" class="error-message" style="color: red; margin-top: 10px;"></span>
+        </div> -->
+        <div class="user-input-box">
+          <input type="text" id="exampleInputPassword2" name="ref_code" placeholder="Enter Referal code"><small class="text-danger" style="font-weight: 700;font-size:medium;">*not
+            mandatory</small>
+        </div>
+      </div>
+      <div class="gender-details-box">
+        <span class="gender-title">Gender</span>
+        <div class="gender-category">
+          <input type="radio" name="gender" id="male">
+          <label for="male">Male</label>
+          <input type="radio" name="gender" id="female">
+          <label for="female">Female</label>
+          <input type="radio" name="gender" id="other">
+          <label for="other">Other</label>
+        </div>
+        <span id="genderError" class="error-message" style="color: red; margin-top: 10px;"></span>
+      </div>
+      
+      <div class="form-submit-btn">
+        <input type="submit" value="Register">
+      </div>
+      <div class="message">
+        <span id="generalError" class="error-message" style="color: red; margin-top: 10px;"></span>
+        <% if(typeof message !=='undefined' ){ %>
+          <p style="color: rgb(185, 44, 44); font-size: larger;font-weight: bold;">
+            <%= message %>
+          </p>
+          <% } %>
+      </div>
+    </form>
+  </div>
+
+
+
+  <script>
+    function validateForm() {
+      var valid = true;
+
+      // Validate First Name
+      var firstName = document.getElementById('name').value;
+      if (firstName.trim() === '') {
+        document.getElementById('nameError').innerHTML = 'Please enter Name';
+        valid = false;
+      } else {
+        document.getElementById('nameError').innerHTML = '';
+      }
+
+      // Validate Username
+      var username = document.getElementById('username').value;
+      if (username.trim() === '') {
+        document.getElementById('usernameError').innerHTML = 'Please enter Username';
+        valid = false;
+      } else {
+        // Username validation rules
+        var usernameRegex = /^[a-zA-Z0-9_]+$/;
+
+        // Check if the username matches the allowed format
+        if (!usernameRegex.test(username)) {
+          document.getElementById('usernameError').innerHTML = 'Username can only contain letters, numbers, and underscores';
+          valid = false;
+        } else {
+          document.getElementById('usernameError').innerHTML = '';
+        }
+      }
+
+
+      // Validate DOB (You may want to use a more sophisticated date validation)
+      // var dob = document.getElementById('DOB').value;
+      // if (dob.trim() === '') {
+      //   document.getElementById('dobError').innerHTML = 'Please enter Date of Birth';
+      //   valid = false;
+      // } else {
+      //   document.getElementById('dobError').innerHTML = '';
+      // }
+
+      // Validate Email
+      var email = document.getElementById('email').value;
+
+      if (email.trim() === '') {
+        document.getElementById('emailError').innerHTML = 'Please enter Email';
+        valid = false;
+      } else {
+        // Regular expression for a simple email validation
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // Check if the entered email matches the format
+        if (!emailRegex.test(email)) {
+          document.getElementById('emailError').innerHTML = 'Please enter a valid email address';
+          valid = false;
+        } else {
+          document.getElementById('emailError').innerHTML = '';
+        }
+      }
+
+      // Validate Phone Number
+      var phoneNumber = document.getElementById('phoneNumber').value;
+      if (phoneNumber.trim() === '') {
+        document.getElementById('phoneNumberError').innerHTML = 'Please enter Phone Number';
+        valid = false;
+      } else {
+        // Regular expression for a simple phone number validation
+        var phoneRegex = /^\d{10}$/;
+
+        // Check if the entered phone number matches the format
+        if (!phoneRegex.test(phoneNumber)) {
+          document.getElementById('phoneNumberError').innerHTML = 'Please enter a valid 10-digit phone number';
+          valid = false;
+        } else {
+          document.getElementById('phoneNumberError').innerHTML = '';
+        }
+      }
+
+
+      // Validate Password
+      var password = document.getElementById('password').value;
+      if (password.trim() === '') {
+        document.getElementById('passwordError').innerHTML = 'Please enter Password';
+        valid = false;
+      } else {
+        // Password validation rules
+        var hasUpperCase = /[A-Z]/.test(password);
+        var hasLowerCase = /[a-z]/.test(password);
+        var hasDigit = /\d/.test(password);
+
+        // Check if the password meets the criteria
+        if (password.length < 6 || !hasUpperCase || !hasLowerCase || !hasDigit) {
+          document.getElementById('passwordError').innerHTML = 'Password must be at least 6 characters long and include at least one uppercase letter, one lowercase letter, and one digit';
+          valid = false;
+        } else {
+          document.getElementById('passwordError').innerHTML = '';
+        }
+      }
+
+      // Validate Address
+      var address = document.getElementById('address').value;
+      if (address.trim() === '') {
+        document.getElementById('addressError').innerHTML = 'Please enter Address';
+        valid = false;
+      } else if (address.length < 10) {
+        document.getElementById('addressError').innerHTML = 'Address should be at least 10 characters long';
+        valid = false;
+      } else {
+        document.getElementById('addressError').innerHTML = '';
+      }
+
+      // Validate Gender
+      var gender = document.querySelector('input[name="gender"]:checked');
+      if (!gender) {
+        document.getElementById('genderError').innerHTML = 'Please select Gender';
+        valid = false;
+      } else {
+        document.getElementById('genderError').innerHTML = '';
+      }
+
+      return valid;
+    }
+  </script>
+
+  <%- include('../userLayouts/footer.ejs') %>

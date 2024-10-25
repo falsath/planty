@@ -1,0 +1,96 @@
+<%- include('../userLayouts/userhead.ejs') %>
+
+<div class="container mt-5">
+  <div class="row">
+    <div class="col">
+      <a href="/home" class="btn btn-dark">BACK TO HOME</a>
+    </div>
+    <div class="col-md-auto">
+      <form action="/filteredProducts" method="GET" class="d-flex align-items-end" id="filterForm">
+        <div class="input-group mb-1 mt-2">
+          <select name="category" class="form-select">
+            <option value="">All Categories</option>
+            <% category.forEach(category => { %>
+            <option value="<%= category._id %>">
+              <%= category.categoryName %>
+            </option>
+            <% }); %>
+          </select>
+
+          <select name="sort" class="form-select ms-2">
+            <option value="">Sort By</option>
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+            <option value="price-asc">Price (Low to High)</option>
+            <option value="price-desc">Price (High to Low)</option>
+            <option value="newest">Newest</option> <!-- New sort option -->
+          </select>
+
+          <!-- Add price range input -->
+       
+          <button type="submit" class="btn btn-primary ms-2 filter-btn">Filter</button>
+          <button type="button" class="btn btn-secondary ms-2" id="clearFiltersBtn">Clear Filters</button>
+          
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="container mt-4">
+  <div class="row">
+    <% if (product.length > 0) { %>
+    <% for (let i = 0; i < product.length; i++) { %>
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <img src="/public/productImage/<%= product[i].image[0] %>" class="card-img-top product-image"
+          alt="Description of the image" style="width: 100%; height: 200px; object-fit: cover;">
+        <div class="card-body" style="color: rgb(2, 2, 2); height: 250px; overflow: hidden;">
+          <h3 style="color: brown;">
+            <%= product[i].name %>
+          </h3>
+          <div class="star">
+            <i class="bx bxs-star checked"></i>
+            <i class="bx bxs-star checked"></i>
+            <i class="bx bxs-star checked"></i>
+            <i class="bx bxs-star"></i>
+            <i class="bx bxs-star"></i>
+          </div>
+          <p style="max-height: 100px; overflow: hidden; text-overflow: ellipsis;">
+            <%= product[i].description %>
+          </p>
+          <h6>
+            <% if (product[i].is_offer) { %>
+            <span class="discounted-price" style="font-weight: bold;">Rs.<%= product[i].price %></span>
+            <span class="original-price dis-price"><s>Rs.<%= product[i].earlierPrice %></s></span>
+            <% } else { %>
+            Rs.<%= product[i].price %>
+            <% } %>
+          </h6>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <a href="/add-to-cart/<%= product[i]._id %>" class="btn btn-danger text-uppercase mr-2 px-4">Add to cart</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+    <% } else { %>
+    <div class="col">
+      <p class="text-center">Products Not Found</p>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../userLayouts/userFoot.ejs') %>
+
+
+<script>
+  document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+    document.getElementById('filterForm').reset();
+    window.location.href = '/filteredProducts'; // Redirect to the filteredProducts route without any filters
+  });
+
+  
+  
+</script>

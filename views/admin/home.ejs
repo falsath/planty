@@ -1,0 +1,343 @@
+<%- include('../adminLayouts/homehead.ejs') %>
+
+  <style>
+    .charts-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      /* Adjust as needed */
+    }
+
+    .charts-card {
+      width: 50%;
+      /* Adjust as needed */
+    }
+    @media (min-width: 576px) {
+      .charts-card {
+        width: 48%;
+      }
+    }
+  </style>
+
+
+  <main class="content px-3 py-2">
+    <div class="container-fluid">
+      <div class="mb-3">
+        <h4>Admin Dashboard</h4>
+      </div>
+
+      <div class="row">
+        <div class="col-12 col-md-6 d-flex">
+          <div class="card flex-fill border-0 illustration">
+            <div class="card-body p-0 d-flex flex-fill">
+              <div class="row g-0 w-100">
+                <div class="col-6">
+                  <div class="p-3 m-1">
+                    <h4>Welcome Back, Admin</h4>
+                    <p class="mb-0">Admin Dashboard</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6 d-flex">
+          <div class="card flex-fill border-0">
+            <div class="card-body py-4">
+              <div class="d-flex align-items-start">
+                <div class="flex-grow-1">
+                  <p class="text-primary">SALES ORDERS</p>
+                  <span class="material-symbols-outlined text-green">add_shopping_cart</span>
+                </div>
+                <span class="text-primary font-weight-bold" style="font-weight: bolder;font-size: larger;">
+                  <%= salesCount %>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3 d-flex justify-content-end">
+          <button class="btn btn-outline-secondary mr-2" onclick="fetchData('monthly')">Monthly</button>
+          <button class="btn btn-outline-secondary ml-2" onclick="fetchData('yearly')">Yearly</button>
+        </div>
+
+        <div class="charts-row">
+          <div class="charts-card">
+            <p class="chart-title">Top 10 Products</p>
+            <div id="bar-chart"></div>
+          </div>
+
+          <div class="charts-card">
+            <p class="chart-title">Purchase and Sales Orders </p>
+            <div id="area-chart"></div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="charts-card">
+            <p class="chart-title">Delivery Status</p>
+            <div id="pie-chart"></div>
+          </div>
+
+          <div class="charts-card">
+            <p class="chart-title">Top 10 categories</p>
+            <div id="line-chart"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.44.0/apexcharts.min.js"
+    integrity="sha512-9ktqS1nS/L6/PPv4S4FdD2+guYGmKF+5DzxRKYkS/fV5gR0tXoDaLqqQ6V93NlTj6ITsanjwVWZ3xe6YkObIQQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script>
+
+    async function fetchData(timeInterval) {
+
+      // Inside the fetchData function, add the following code for the line chart
+      const lineChartResponse = await fetch('/admin/linechart', { method: 'GET' });
+
+      if (!lineChartResponse.ok) {
+        throw new Error(`Error fetching line chart data. Status: ${lineChartResponse.status}`);
+      }
+
+      const lineChartData = await lineChartResponse.json();
+
+      // Render the line chart using the fetched data
+      var lineChartOptions = {
+        series: [{
+          name: 'Line Chart Series',
+          data: lineChartData.data
+        }],
+        chart: {
+          height: 350,
+          type: 'line',
+          toolbar: {
+            show: false
+          }
+        },
+        colors: ["#4f35a1"], // Customize color as needed
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          curve: 'smooth'
+        },
+        xaxis: {
+          categories: lineChartData.categories,
+        },
+        yaxis: {
+          title: {
+            text: 'Y-Axis Title'
+          }
+        }
+      };
+
+      var lineChart = new ApexCharts(document.querySelector("#line-chart"), lineChartOptions);
+      lineChart.render();
+
+
+      // Inside the fetchData function, add the following code for the pie chart
+      const pieChartResponse = await fetch('/admin/piechart', { method: 'GET' });
+
+      if (!pieChartResponse.ok) {
+        throw new Error(`Error fetching pie chart data. Status: ${pieChartResponse.status}`);
+      }
+
+      const pieChartData = await pieChartResponse.json();
+
+      // Render the pie chart using the fetched data
+      var pieChartOptions = {
+        series: pieChartData.series,
+        labels: pieChartData.labels,
+        chart: {
+          type: 'donut', // You can change the chart type as needed
+          height: 350,
+          toolbar: {
+            show: false
+          }
+        },
+        colors: ['#ff8c00', '#36A2EB', '#FFCE56', '#cc3c43', '#367952'], // Customize colors as needed
+        dataLabels: {
+          enabled: false
+        },
+        legend: {
+          show: true,
+          position: 'bottom',
+        }
+      };
+
+      var pieChart = new ApexCharts(document.querySelector("#pie-chart"), pieChartOptions);
+      pieChart.render();
+
+
+      console.log(timeInterval);
+
+      let apiUrl1;
+      let apiUrl2;
+      /*if (timeInterval === 'daily') {
+        apiUrl1 = `/admin/weeklyBarChart`;
+        apiUrl2 = `/admin/yearlyAreaChart`;
+      } else*/ if (timeInterval === 'weekly') {
+        apiUrl1 = `/admin/weeklyBarChart`;
+        apiUrl2 = `/admin/weeklyAreaChart`;
+      } else if (timeInterval === 'monthly') {
+        apiUrl1 = `/admin/monthlyBarChart`;
+        apiUrl2 = `/admin/monthlyAreaChart`;
+      } else if (timeInterval === 'yearly') {
+        apiUrl1 = `/admin/yearlyBarChart`;
+        apiUrl2 = `/admin/yearlyAreaChart`;
+      }
+
+      try {
+        const response = await fetch(apiUrl1, {
+          method: 'GET'
+        });
+        console.log(apiUrl2)
+        const response1 = await fetch(apiUrl2, {
+          method: 'GET'
+        });
+
+
+
+        // console.log(response)
+        if (!response.ok) {
+          throw new Error(`Error fetching data. Status: ${response.status}`);
+        }
+        else {
+          const data = await response.json();
+          console.log(data)
+          var barChartOptions = {
+            series: [{
+              data: data.top5AverageQuantities
+            }],
+            chart: {
+              type: 'bar',
+              height: 350,
+              toolbar: {
+                show: false
+              }
+            },
+            colors: [
+              "#246dec",
+              "#cc3c43",
+              "#367952",
+              "#f5b74f",
+              "#4f35a1"
+            ],
+            plotOptions: {
+              bar: {
+                distributed: true,
+                borderRadius: 4,
+                horizontal: false,
+                columnWidth: '40%'
+              }
+            },
+            dataLabels: {
+              enabled: false
+            },
+            legend: {
+              show: false
+            },
+            xaxis: {
+              categories: data.top5ProductNames,
+            },
+            yaxis: {
+              title: {
+                text: "Count"
+              }
+            }
+          };
+
+          var barChart = new ApexCharts(document.querySelector("#bar-chart"), barChartOptions);
+          barChart.render();
+        }
+
+        if (!response1.ok) {
+          throw new Error(`Error fetching data. Status: ${response1.status}`);
+        } else {
+          const data1 = await response1.json();
+          console.log(data1)
+          var areaChartOptions = {
+            series: [{
+              name: 'Purchase Orders',
+
+              data: data1.purchase
+            }, {
+              name: 'Sales Orders',
+
+              data: data1.sales
+            }],
+            chart: {
+              height: 350,
+              type: 'area',
+              toolbar: {
+                show: false
+              }
+            },
+            colors: ["#4f35a1", "#246dec"],
+            dataLabels: {
+              enabled: false
+            },
+            stroke: {
+              curve: 'smooth'
+            },
+
+            labels: data1.months,
+            markers: {
+              size: 0
+            },
+            yaxis: [
+              {
+                title: {
+                  text: 'Purchase Orders',
+                },
+              },
+              {
+                opposite: true,
+                title: {
+                  text: 'Sales Orders',
+                },
+              },
+            ],
+            tooltip: {
+              shared: true,
+              intersect: false,
+              y: {
+                formatter: function (y) {
+                  if (typeof y !== "undefined") {
+                    return y.toFixed(0) + " points";
+                  }
+                  return y;
+                }
+              }
+            }
+          };
+
+          var areaChart = new ApexCharts(document.querySelector("#area-chart"), areaChartOptions);
+          areaChart.render();
+
+        }
+
+
+
+      } catch (error) {
+        console.error('Error fetching data:', error.message);
+      }
+    };
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+      fetchData('yearly');
+    });
+
+
+  </script>
+
+
+  <%- include('../adminLayouts/homefooter.ejs') %>

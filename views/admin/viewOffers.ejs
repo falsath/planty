@@ -1,0 +1,43 @@
+<%- include('../adminLayouts/homehead.ejs') %>
+
+    <h1 style="text-align: center; font-weight: bolder;">OFFER LIST</h1>
+
+    <div style="margin: 20px;">
+        <div class="table-responsive">
+            <table class="table my-3 table-hover" id="userTable">
+                <thead>
+                    <tr>
+                        <th scope="col">Sl.No</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Discount</th>
+                        <th scope="col">Expiry</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (offers.length> 0) {
+                        for (let i = 0; i < offers.length; i++) { %>
+                            <tr>
+                                <td scope="row">
+                                    <%= i + 1 %>
+                                </td>
+                                <td>
+                                    <%= offers[i].category %>
+                                </td>
+                                <td>
+                                    <%= offers[i].discount %>
+                                </td>
+                                <td>
+                                    <%= offers[i].expiry %>
+                                </td>
+                            </tr>
+                            <% } } else { %>
+                                <tr>
+                                    <td colspan="4">Offers Not Found</td>
+                                </tr>
+                                <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<%- include('../adminLayouts/homefooter.ejs') %>

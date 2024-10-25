@@ -1,0 +1,309 @@
+<%- include('../adminLayouts/homehead.ejs') %>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<style>
+  .image-preview-container {
+    position: relative;
+    margin: 5px;
+  }
+
+  .close-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    color: red;
+  }
+
+  #cropModal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    padding-top: 60px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .crop-container {
+    width: 80%;
+    max-width: 600px;
+    margin: auto;
+    background-color: #fff;
+    padding: 20px;
+    overflow-y: auto; /* Ensure that the content is scrollable if it overflows */
+  }
+
+  #cropImage {
+    max-width: 100%;
+  }
+</style>
+
+<div class="container">
+  <form id="addProductForm" class="mx-auto mt-5 p-4 bg-light" style="max-width: 600px;" action="/admin/addProduct" method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
+    <h1 class="text-center mb-4">ADD PRODUCT</h1>
+
+    <div class="mb-3 mt-5">
+      <label class="form-label">Name</label>
+      <input type="text" class="form-control" name="name" id="name">
+      <small id="nameError" class="text-danger"></small>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Quantity</label>
+      <input type="text" class="form-control" name="quantity" id="quantity">
+      <small id="quantityError" class="text-danger"></small>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Price</label>
+      <input type="text" class="form-control" name="price" id="price">
+      <small id="priceError" class="text-danger"></small>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <textarea class="form-control" name="description" id="description"></textarea>
+      <small id="descriptionError" class="text-danger"></small>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="product_categorie">PRODUCT CATEGORY</label>
+      <div class="form-label">
+        <% if (category.length > 0) { %>
+          <select id="product_categorie" name="category_id" class="form-control">
+            <% category.forEach(category => { %>
+              <option value="<%= category._id %>">
+                <%= category.categoryName %>
+              </option>
+            <% }); %>
+          </select>
+        <% } else { %>
+          <p>No categories available</p>
+        <% } %>
+        <small id="categoryError" class="text-danger"></small>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Image</label>
+      <input type="file" name="image" class="form-control" id="image" multiple onchange="previewImages(event)">
+      <small id="imageError" class="text-danger"></small>
+      <div id="image-preview-container" class="mt-2 d-flex flex-wrap"></div>
+    </div>
+
+    <div class="text-center">
+      <input type="submit" value="ADD PRODUCT" class="btn btn-outline-success">
+    </div>
+
+    <br><br>
+    <div id="formMessage" class="text-center text-danger"></div>
+  </form>
+</div>
+
+<!-- Modal for cropping image -->
+<div id="cropModal">
+  <div class="crop-container">
+    <h3 class="text-center">Crop your image</h3>
+    <img id="cropImage" src="" alt="Crop Image">
+    <div class="text-center mt-3">
+      <button id="cropButton" class="btn btn-primary" onclick="cropAndSaveImage()">Crop</button>
+      <button class="btn btn-secondary" onclick="closeCropModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  let cropper;
+  let filesArray = [];
+  let currentFileIndex = 0;
+  let imagesArray = [];
+  const imageInput = document.getElementById('image');
+
+  function previewImages(event) {
+    filesArray = Array.from(event.target.files);  // Convert file list to an array
+    currentFileIndex = 0;
+    document.getElementById('image-preview-container').innerHTML = "";  // Clear previous previews
+
+    if (filesArray.length > 0) {
+      showCropModal(filesArray[currentFileIndex]);  // Show the crop modal for the first image
+    }
+  }
+
+  function showCropModal(file) {
+    const cropModal = document.getElementById('cropModal');
+    const cropImage = document.getElementById('cropImage');
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      cropImage.src = e.target.result;  // Load image to be cropped
+      cropModal.style.display = 'block';
+      document.body.style.overflow = 'hidden';  // Prevent background scrolling
+
+      if (cropper) {
+        cropper.destroy();  // Destroy previous cropper instance
+      }
+
+      cropper = new Cropper(cropImage, {
+        aspectRatio: 1,  // Crop aspect ratio (square)
+        viewMode: 1,
+        scalable: false,
+        zoomable: false,
+      });
+    };
+
+    reader.readAsDataURL(file);  // Read the selected file as a data URL
+  }
+
+  function cropAndSaveImage() {
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas({
+      width: 300,
+      height: 300,
+    });
+
+    canvas.toBlob(function (blob) {
+      const croppedFile = new File([blob], filesArray[currentFileIndex].name, {
+        type: filesArray[currentFileIndex].type,
+        lastModified: Date.now(),
+      });
+
+      // Use a separate image URL for each cropped image
+      const imageUrl = URL.createObjectURL(croppedFile);
+      imagesArray.push({ file: croppedFile, url: imageUrl });  // Store the file and the URL
+      previewCroppedImage(imageUrl);  // Preview the cropped image
+
+      currentFileIndex++;
+      if (currentFileIndex < filesArray.length) {
+        showCropModal(filesArray[currentFileIndex]);  // Crop the next image
+      } else {
+        closeCropModal();
+        updateInputFiles();  // Update input field with cropped images
+      }
+    }, filesArray[currentFileIndex].type);
+  }
+
+  function closeCropModal() {
+    const cropModal = document.getElementById('cropModal');
+    cropModal.style.display = 'none';
+    document.body.style.overflow = '';  // Re-enable background scrolling
+
+    if (cropper) {
+      cropper.destroy();  // Destroy cropper instance
+      cropper = null;
+    }
+  }
+
+  function previewCroppedImage(imageSrc) {
+    const previewContainer = document.getElementById('image-preview-container');
+    const imgContainer = document.createElement('div');
+    imgContainer.classList.add('image-preview-container');
+
+    const img = document.createElement('img');
+    img.src = imageSrc;  // Set the unique image URL for the preview
+    img.style.maxWidth = '100px';
+    img.style.height = 'auto';
+
+    const closeButton = document.createElement('div');
+    closeButton.classList.add('close-icon');
+    closeButton.innerHTML = '&#10006;';  // Close icon
+
+    closeButton.addEventListener('click', function () {
+      imgContainer.remove();  // Remove image preview on click
+      const index = imagesArray.findIndex(image => image.url === imageSrc);
+      if (index > -1) {
+        imagesArray.splice(index, 1);  // Remove image from array
+        updateInputFiles();  // Update input files after removal
+      }
+    });
+
+    imgContainer.appendChild(img);
+    imgContainer.appendChild(closeButton);
+    previewContainer.appendChild(imgContainer);  // Add new image preview
+  }
+
+  function updateInputFiles() {
+    const dataTransfer = new DataTransfer();
+
+    imagesArray.forEach(imageObj => {
+      dataTransfer.items.add(imageObj.file);  // Add cropped images to input files
+    });
+
+    imageInput.files = dataTransfer.files;  // Set the input's file list to the new cropped images
+  }
+
+  function validateForm() {
+    const name = document.getElementById("name").value.trim();
+    const quantity = document.getElementById("quantity").value.trim();
+    const price = document.getElementById("price").value.trim();
+    const description = document.getElementById("description").value.trim();
+    const category = document.getElementById("product_categorie").value.trim();
+
+    // Clear previous errors
+    document.getElementById("nameError").textContent = "";
+    document.getElementById("quantityError").textContent = "";
+    document.getElementById("priceError").textContent = "";
+    document.getElementById("descriptionError").textContent = "";
+    document.getElementById("categoryError").textContent = "";
+    document.getElementById("imageError").textContent = "";
+    document.getElementById("formMessage").textContent = "";
+
+    let hasError = false;
+
+    // Basic form validations
+    if (name === "") {
+      document.getElementById("nameError").textContent = "Name is required";
+      hasError = true;
+    }
+
+    if (quantity === "" || isNaN(quantity) || quantity <= 0) {
+      document.getElementById("quantityError").textContent = "Quantity should be a positive number";
+      hasError = true;
+    }
+
+    if (price === "" || isNaN(price) || price <= 0) {
+      document.getElementById("priceError").textContent = "Price should be a positive number";
+      hasError = true;
+    }
+
+    if (description === "") {
+      document.getElementById("descriptionError").textContent = "Description is required";
+      hasError = true;
+    }
+
+    if (category === "") {
+      document.getElementById("categoryError").textContent = "Category is required";
+      hasError = true;
+    }
+
+    if (imagesArray.length < 1) {
+      document.getElementById("imageError").textContent = "Please upload at least 3 images";
+      hasError = true;
+    }
+
+    if (hasError) {
+      document.getElementById("formMessage").textContent = "Please fix the errors above before submitting.";
+      return false;
+    }
+
+    // Success alert
+    Swal.fire({
+      icon: 'success',
+      title: 'Product added successfully!',
+      showConfirmButton: false,
+      timer: 1500
+    });
+
+    return true;
+  }
+</script>
+
+
+
+<%- include('../adminLayouts/homefooter.ejs') %>

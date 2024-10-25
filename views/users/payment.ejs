@@ -1,0 +1,170 @@
+<%- include('../userLayouts/userhead.ejs') %>
+    <h1>Payment</h1>
+    <div class="container">
+        <div class="mx-auto mt-5 p-4 bg-light">
+            <% if (user) { %>
+                <p>Selected Address: <%= address.address %>
+                        <%= address.state %>
+                            <%= address.city %>
+                                <%= address.pincode %>
+                </p>
+                <form id="form" onsubmit="placeOrder(event)">
+                    <div class="mb-3 row">
+
+                        <label for="address">Select Address:</label>
+                        <div class="col-sm-10">
+                            <select id="address" name="address" class="form-control">
+                                <% if (user && user.addresses && user.addresses.length> 0) { %>
+                                    <% for (let i=0; i < user.addresses.length; i++) { %>
+                                        <option value="<%= user.addresses[i].address %>">
+                                            <%= user.addresses[i].address %>
+                                                <%= user.addresses[i].state %>
+                                                    <%= user.addresses[i].city %>
+                                                        <%= user.addresses[i].pincode %>
+                                        </option>
+                                        <% } %>
+                                            <% } else { %>
+                                                <option value="" disabled>No addresses available</option>
+                                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label for="payment">Payment</label>
+                        <select name="payment" id="payment">
+                            <option value="">Choose..</option>
+                            <option value="COD">COD</option>
+                            
+                            <option value="UPI">UPI</option>
+                        </select>
+                        <button type="submit">Proceed to Payment</button>
+
+                    </div>
+                </form>
+                <% } else { %>
+                    <p>User not found</p>
+                    <% } %>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        async function placeOrder(event) {
+            try {
+                event.preventDefault();
+
+                const form = event.target;
+                const formData = new FormData(form);
+
+                const formDataObject = {};
+                formData.forEach((value, key) => {
+                    formDataObject[key] = value;
+                });
+
+                console.log(formDataObject);
+
+
+                // console.log(formData);
+
+                const response = await fetch('/place-order', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                console.log('Client Response:', response);
+
+                if (!response.ok) {
+                    console.error('Fetch error:', response.status, response.statusText);
+                    handleNonJsonResponse('Failed to fetch data from the server');
+                    return;
+                }
+
+                if (response.redirected) {
+                    console.log('Redirect detected, navigating to:', response.url);
+                    window.location.href = response.url;
+                    return;
+                }
+
+                try {
+                    const result = await response.json();
+                    console.log('Parsed JSON Response:', result);
+
+                    if (result.response && result.response.method === 'UPI') {
+                        console.log('UPI payment detected');
+
+                        const orderDetails = {
+                            key: result.response.key_id,
+                            amount: result.response.amount,
+                            currency: 'INR',
+                            order_id: result.response.order.id,
+                            image: '',
+                            handler: async function (result) {
+                                const formDataClone = new FormData(form);
+
+                                const verifyResponse = await fetch('/verifyRazorPay', {
+                                    method: 'POST',
+                                    body: formDataClone,
+                                });
+
+                                if (verifyResponse.ok) {
+                                    const verifyResult = await verifyResponse.json();
+                                    window.location.href = '/order-placed';
+                                } else {
+                                    const verifyResult = await verifyResponse.json();
+                                    handleVerificationFailure(verifyResult.errorMessages);
+                                }
+                            },
+                        };
+
+                        console.log('Before Razorpay instantiation');
+                        const razorpay = new Razorpay(orderDetails);
+                        console.log('After Razorpay instantiation');
+
+                        razorpay.on('payment.failed', function (response) {
+                            alert(response.error.reason);
+                        });
+                        razorpay.open();
+                    } else {
+                        console.log('Fallback to order-placed');
+                        window.location.href = '/order-placed';
+                    }
+
+                } catch (jsonError) {
+                    console.error('JSON parsing error:', jsonError);
+                    handleNonJsonResponse('Unexpected response from the server');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                handleNonJsonResponse('Unexpected error');
+            }
+        }
+
+        function handleVerificationFailure(errorMessage) {
+            const customAlertContainer = document.getElementById('customAlertContainer');
+            const customAlertStrong = document.getElementById('customAlertStrong');
+
+            if (customAlertContainer && customAlertStrong) {
+                customAlertStrong.textContent = errorMessage;
+                customAlertContainer.style.display = 'block';
+                console.log('Failed to verify Razorpay payment');
+            } else {
+                console.error('Failed to set properties on null elements');
+            }
+        }
+
+        function handleNonJsonResponse(errorMessage = 'Unexpected error') {
+            const customAlertContainer = document.getElementById('customAlertContainer');
+            const customAlertStrong = document.getElementById('customAlertStrong');
+
+            if (customAlertContainer && customAlertStrong) {
+                customAlertStrong.textContent = errorMessage;
+                customAlertContainer.style.display = 'block';
+                console.log('Failed to place order (non-JSON response)');
+            } else {
+                console.error('Failed to set properties on null elements');
+            }
+        }
+    </script>
+
+    <%- include('../userLayouts/userFoot.ejs') %>

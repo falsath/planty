@@ -1,0 +1,38 @@
+<%- include('../userLayouts/loginheader.ejs') %>
+
+    <div class="wrapper">
+        <div class="container main">
+            <div class="row">
+                <div class="col-md-6 side-image">
+
+                    <!-------------      image     ------------->
+
+                </div>
+
+                <div class="col-md-6 right">
+
+                    <div class="input-box">
+                        <form action="/forget" method="post">
+                            <header class="Login" style="font-size: 2.5rem;">FORGET PASSWORD</header>
+                            <% if(typeof message !=='undefined' ){ %>
+                                <h4 style="color: rgb(226, 16, 16); font-size: 15px;font-weight: bold;" >
+                                    <%= message %>
+                                </h4>
+                                <% } %>
+                                    <div class="input-field">
+                                        <input type="email" class="input" name="email" id="email" required="" autocomplete="off">
+                                        <label for="email">Email</label>
+                                    </div>
+                                    <div class="input-field">
+
+                                        <input type="submit" class="submit" value="Send reset Link">
+                                    </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+ <%- include('../userLayouts/footer.ejs') %>

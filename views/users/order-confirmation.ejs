@@ -1,0 +1,108 @@
+<%- include('../userLayouts/userhead.ejs') %>
+
+<div class="mt-5 ms-5">
+  <a href="/home" class="btn btn-dark">BACK TO HOME</a>
+</div>
+
+<section class="h-100 gradient-custom">
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col-lg-10 col-xl-8">
+        <div class="card" style="border-radius: 10px;">
+          <div class="card-header px-4 py-5">
+            <h5 class="text-muted mb-0">Thanks for your Order ,please check order status in profile</h5>
+          </div>
+
+          <% if (Array.isArray(orderDetails) && orderDetails.length > 0) { %>
+            <% orderDetails.forEach((order, index) => { %>
+
+              <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                  <p class="lead fw-normal mb-0" style="color: #a8729a;">Receipt</p>
+                </div>
+                <% order.products.forEach((product, productIndex) => { %>
+                  <div class="card shadow-0 border mb-4">
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-md-2">
+                          <% if (product.product && product.product.image && product.product.image.length > 0) { %>
+                            <img src="/public/productImage/<%= product.product.image[0] %>" class="img-fluid" alt="<%= product.product.name %>">
+                          <% } else { %>
+                            <!-- Provide a fallback image or handle the case where there is no image -->
+                            <img src="/public/default-image.jpg" class="img-fluid" alt="Default Image">
+                          <% } %>
+                        </div>
+                        <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                          <p class="text-muted mb-0">
+                            <%= product.product.name %>
+                          </p>
+                        </div>
+                        <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                          <p class="text-muted mb-0 small">Qty: <%= product.quantity %></p>
+                        </div>
+                        <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                          <p class="text-muted mb-0 small">RS.<%= product.price !== undefined ? product.price.toFixed(2) : 'N/A' %></p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+
+                <div class="d-flex justify-content-between pt-2">
+                  <p class="fw-bold mb-0">Order Details - <%= index + 1 %></p>
+                  <p class="text-muted mb-0">
+                    <span class="fw-bold me-4">Total</span> $<%= order.totalPrice !== undefined ? order.totalPrice.toFixed(2) : 'N/A' %>
+                  </p>
+                </div>
+              </div>
+            <% }); %>
+          <% } else if (orderDetails) { %>
+
+            <div class="card-body p-4" style="background-color: #f8d3e2;">
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <p class="lead fw-normal mb-0" style="color: #8f3176; font-weight: bolder;">Receipt</p>
+              </div>
+              <% orderDetails.products.forEach((product, productIndex) => { %>
+                <div class="card shadow-0 border mb-4">
+                  <div class="card-body">
+                    <div class="row justify-content-between">
+                      <div class="col-md-2">
+                        <img src="/public/productImage/<%= product.product.image[0] %>" class="img-fluid"
+                          alt="<%= product.product.name %>">
+                      </div>
+                      <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                        <p >
+                          <%= product.product.name %>
+                        </p>
+                      </div>
+                      <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                        <p >Qty: <%= product.quantity %></p>
+                      </div>
+                      <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                        <p >RS.<%= product.price !== undefined ? product.price.toFixed(2) : 'N/A' %></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+
+              <div class="d-flex justify-content-between pt-2">
+                <p>
+                  <span class="fw-bold me-4">Total</span> <%= orderDetails.totalPrice !== undefined ? orderDetails.totalPrice.toFixed(2) : 'N/A' %>/-
+                </p>
+              </div>
+            </div>
+          <% } else { %>
+            <!-- Handle the case where there are no order details -->
+            <div class="card-body p-4" style="background-color: #f8d3e2;">
+              <p class="lead fw-normal mb-0" style="color: #8f3176; font-weight: bolder;">No order details found.</p>
+            </div>
+          <% } %>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('../userLayouts/userFoot.ejs') %>

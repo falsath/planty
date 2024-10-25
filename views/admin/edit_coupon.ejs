@@ -1,0 +1,46 @@
+<%- include('../adminLayouts/homehead.ejs') %>
+
+<div class="container mt-5">
+  <% if (coupon) { %>
+    <form action="/admin/edit-coupon" method="POST" class="mx-auto mt-5 p-4 bg-light" style="max-width: 600px;">
+      <h2 class="text-center mb-4">EDIT COUPON</h2>
+      <div class="mb-3">
+        <label for="code" class="form-label">Coupon Code</label>
+        <input type="text" class="form-control" id="code" name="code" value="<%= coupon.code %>" required>
+      </div>
+      <div class="mb-3">
+        <label for="discount" class="form-label">Discount</label>
+        <input type="number" class="form-control" id="discount" name="discount" value="<%= coupon.discount %>" required>
+      </div>
+      <div class="mb-3">
+        <label for="minimumPurchase" class="form-label">Minimum Purchase</label>
+        <input type="number" class="form-control" id="minimumPurchase" name="minimumPurchase" value="<%= coupon.minimumPurchase %>" required>
+      </div>
+      <div class="mb-3">
+        <label for="discountType" class="form-label">Discount Type</label>
+        <select class="form-select" id="discountType" name="discountType" required>
+          <option value="percentage" <%= coupon.discountType === 'percentage' ? 'selected' : '' %>>Percentage</option>
+          <option value="flat" <%= coupon.discountType === 'flat' ? 'selected' : '' %>>Flat</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Enter Expiry Date</label>
+        <input type="datetime-local" class="form-control" name="expiry" id="expiry" value="<%= coupon.formattedExpiry %>">
+        <small id="expiryError" class="text-danger"></small>
+      </div>
+      <input type="hidden" name="id" value="<%= coupon._id %>">
+
+      <br><br>
+      <% if (typeof message !=='undefined' ) { %>
+        <p style="color:rgb(128, 23, 0);font-weight: bold;">
+          <%= message %>
+        </p>
+        <% } %>
+      <button type="submit" class="btn btn-primary ">Save Changes</button>
+    </form>
+  <% } else { %>
+    <p>Coupon not found.</p>
+  <% } %>
+</div>
+
+<%- include('../adminLayouts/homefooter.ejs') %>

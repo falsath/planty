@@ -1,0 +1,146 @@
+<%- include('../adminLayouts/homehead.ejs') %>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<!-- Delete Coupon Modal -->
+<div class="modal fade" id="deleteCouponModal" tabindex="-1" aria-labelledby="deleteCouponModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteCouponModalLabel">Delete Coupon</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete this coupon?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <a id="deleteCouponBtn" href="#" class="btn btn-danger">Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h1 style="text-align: center; font-weight: bolder;">COUPONS</h1>
+
+<div style="margin: 20px;">
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Coupon Code</th>
+          <th scope="col">Discount</th>
+          <th scope="col">Minimum Purchase</th>
+          <th scope="col">Discount Type</th>
+          <th scope="col">Expiry Date</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% coupons.forEach(coupon => { %>
+        <tr data-coupon-id="<%= coupon._id %>">
+          <td><%= coupon.code %></td>
+          <td><%= coupon.discount %>%</td>
+          <td><%= coupon.minimumPurchase %></td>
+          <td><%= coupon.discountType %></td>
+          <td><%= coupon.expiry %></td>
+          <td>
+            <!-- List/Unlist Coupon -->
+            <% if (coupon.isListed) { %>
+              <button class="btn btn-danger unlist-btn">Unlist</button>
+            <% } else { %>
+              <button class="btn btn-success list-btn">List</button>
+            <% } %>
+            &nbsp;&nbsp;
+
+            <!-- Edit Coupon -->
+            <a href="/admin/edit-coupon?id=<%= coupon._id %>">
+              <img src="/public/photo/edit.png" width="25px" height="25px">
+            </a>
+            &nbsp;&nbsp;
+
+            <!-- Delete Coupon (using modal) -->
+            <a href="#" data-bs-toggle="modal" data-bs-target="#deleteCouponModal" data-coupon-id="<%= coupon._id %>">
+              <img src="/public/photo/delete.png" width="25px" height="25px">
+            </a>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../adminLayouts/homefooter.ejs') %>
+
+<script>
+  // Handle modal confirmation for deleting coupon
+  document.addEventListener('DOMContentLoaded', function () {
+    const deleteCouponBtn = document.getElementById('deleteCouponBtn');
+    const deleteCouponModal = new bootstrap.Modal(document.getElementById('deleteCouponModal'));
+
+    // Add click event listener to each delete button
+    document.querySelectorAll('[data-bs-target="#deleteCouponModal"]').forEach(item => {
+      item.addEventListener('click', (event) => {
+        const couponId = event.currentTarget.getAttribute('data-coupon-id');
+
+        // Update the 'Delete' button href with the actual delete URL
+        deleteCouponBtn.href = `/admin/delete-coupon?id=${couponId}`;
+      });
+    });
+  });
+
+  // Handle List and Unlist actions via AJAX
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.list-btn, .unlist-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        const couponId = this.closest('tr').getAttribute('data-coupon-id');
+        const isListed = this.classList.contains('unlist-btn');
+        const url = isListed ? `/admin/unlist-coupon?id=${couponId}` : `/admin/list-coupon?id=${couponId}`;
+
+        fetch(url, { method: 'GET' })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Update button text and classes accordingly
+              if (isListed) {
+                this.classList.remove('btn-danger', 'unlist-btn');
+                this.classList.add('btn-success', 'list-btn');
+                this.textContent = 'List';
+              } else {
+                this.classList.remove('btn-success', 'list-btn');
+                this.classList.add('btn-danger', 'unlist-btn');
+                this.textContent = 'Unlist';
+              }
+              showToastr(data.message || 'Action successful', 'success');
+            } else {
+              showToastr('Failed to update coupon status', 'error');
+            }
+          })
+          .catch(error => {
+            console.error('Error updating coupon status:', error);
+            showToastr('Something went wrong!', 'error');
+          });
+      });
+    });
+  });
+
+  // Function to show toastr notifications
+  function showToastr(message, type = 'success') {
+    toastr.options = {
+      closeButton: true,
+      progressBar: true,
+      positionClass: 'toast-top-right',
+      showDuration: 300,
+      hideDuration: 1000,
+      timeOut: 5000,
+      extendedTimeOut: 1000,
+      showEasing: 'swing',
+      hideEasing: 'linear',
+      showMethod: 'fadeIn',
+      hideMethod: 'fadeOut'
+    };
+    toastr[type](message);
+  }
+</script>

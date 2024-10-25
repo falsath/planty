@@ -1,0 +1,887 @@
+
+
+//home.ejs admin
+
+
+<%- include('../adminLayouts/homehead.ejs') %>
+
+<style>
+  .charts-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .charts-card {
+    width: 50%;
+  }
+
+  @media (min-width: 576px) {
+    .charts-card {
+      width: 48%;
+    }
+  }
+</style>
+
+<main class="content px-3 py-2">
+  <div class="container-fluid">
+    <div class="mb-3">
+      <h4>Admin Dashboard</h4>
+    </div>
+
+    <div class="row">
+      <div class="col-12 col-md-6 d-flex">
+        <div class="card flex-fill border-0 illustration">
+          <div class="card-body p-0 d-flex flex-fill">
+            <div class="row g-0 w-100">
+              <div class="col-6">
+                <div class="p-3 m-1">
+                  <h4>Welcome Back, Admin</h4>
+                  <p class="mb-0">Admin Dashboard</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6 d-flex">
+        <div class="card flex-fill border-0">
+          <div class="card-body py-4">
+            <div class="d-flex align-items-start">
+              <div class="flex-grow-1">
+                <p class="text-primary">SALES ORDERS</p>
+                <span class="material-symbols-outlined text-green">add_shopping_cart</span>
+              </div>
+              <span class="text-primary font-weight-bold" style="font-weight: bolder; font-size: larger;">
+                <%= salesCount %>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3 d-flex justify-content-end">
+        <button class="btn btn-outline-secondary mr-2" onclick="fetchData('monthly')">Monthly</button>
+        <button class="btn btn-outline-secondary ml-2" onclick="fetchData('yearly')">Yearly</button>
+      </div>
+
+      <div class="charts-row">
+        <div class="charts-card">
+          <!-- <p class="chart-title">Top 5 Products</p> -->
+
+          <p class="chart-title">Best selling product</p>
+
+
+
+          <div id="bar-chart"></div>
+        </div>
+
+        <div class="charts-card">
+          <p class="chart-title">Purchase and Sales Orders</p>
+          <div id="area-chart"></div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="charts-card">
+          <p class="chart-title">Delivery Status</p>
+          <div id="pie-chart"></div>
+        </div>
+
+        <div class="charts-card">
+          <!-- <p class="chart-title">Top 5 Purchased Products</p> -->
+
+          <p class="chart-title">Best selling categories</p>
+          <div id="line-chart"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.44.0/apexcharts.min.js"
+  integrity="sha512-9ktqS1nS/L6/PPv4S4FdD2+guYGmKF+5DzxRKYkS/fV5gR0tXoDaLqqQ6V93NlTj6ITsanjwVWZ3xe6YkObIQQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+  async function fetchData(timeInterval) {
+    let apiUrlBar, apiUrlArea;
+
+    if (timeInterval === 'monthly') {
+      apiUrlBar = '/admin/monthlyBarChart';
+      apiUrlArea = '/admin/monthlyAreaChart';
+    } else if (timeInterval === 'yearly') {
+      apiUrlBar = '/admin/yearlyBarChart';
+      apiUrlArea = '/admin/yearlyAreaChart';
+    }
+
+    try {
+      // Bar chart for top 5 products
+      const barChartResponse = await fetch(apiUrlBar);
+      if (!barChartResponse.ok) throw new Error('Error fetching bar chart data');
+      const barData = await barChartResponse.json();
+      renderBarChart(barData.top5ProductNames, barData.top5AverageQuantities);
+
+      // Area chart for purchase and sales orders
+      const areaChartResponse = await fetch(apiUrlArea);
+      if (!areaChartResponse.ok) throw new Error('Error fetching area chart data');
+      const areaData = await areaChartResponse.json();
+      renderAreaChart(areaData.months, areaData.purchase, areaData.sales);
+
+      // Fetch and render pie chart
+      await fetchAndRenderPieChart();
+
+      // Fetch and render line chart
+      await fetchAndRenderLineChart();
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }
+
+  function renderBarChart(categories, seriesData) {
+    var barChartOptions = {
+      series: [{ data: seriesData }],
+      chart: { type: 'bar', height: 350 },
+      colors: ["#246dec", "#cc3c43", "#367952", "#f5b74f", "#4f35a1"],
+      plotOptions: {
+        bar: {
+          distributed: true,
+          borderRadius: 4,
+          horizontal: false,
+          columnWidth: '40%'
+        }
+      },
+      xaxis: { categories },
+      yaxis: { title: { text: "Count" } },
+      dataLabels: { enabled: false },
+      legend: { show: false }
+    };
+    new ApexCharts(document.querySelector("#bar-chart"), barChartOptions).render();
+  }
+
+  function renderAreaChart(labels, purchaseData, salesData) {
+    var areaChartOptions = {
+      series: [{ name: 'Purchase Orders', data: purchaseData }, { name: 'Sales Orders', data: salesData }],
+      chart: { height: 350, type: 'area' },
+      colors: ["#4f35a1", "#246dec"],
+      stroke: { curve: 'smooth' },
+      xaxis: { categories: labels },
+      yaxis: [
+        { title: { text: 'Purchase Orders' } },
+        { opposite: true, title: { text: 'Sales Orders' } }
+      ]
+    };
+    new ApexCharts(document.querySelector("#area-chart"), areaChartOptions).render();
+  }
+
+  async function fetchAndRenderPieChart() {
+    const response = await fetch('/admin/piechart');
+    if (!response.ok) throw new Error('Error fetching pie chart data');
+    const pieData = await response.json();
+    var pieChartOptions = {
+      series: pieData.series,
+      labels: pieData.labels,
+      chart: { type: 'donut', height: 350 },
+      colors: ['#ff8c00', '#36A2EB', '#FFCE56', '#cc3c43', '#367952'],
+      legend: { position: 'bottom' }
+    };
+    new ApexCharts(document.querySelector("#pie-chart"), pieChartOptions).render();
+  }
+
+  async function fetchAndRenderLineChart() {
+    const response = await fetch('/admin/linechart');
+    if (!response.ok) throw new Error('Error fetching line chart data');
+    const lineData = await response.json();
+    var lineChartOptions = {
+      series: [{ name: 'Purchased Products', data: lineData.data }],
+      chart: { type: 'line', height: 350 },
+      stroke: { curve: 'smooth' },
+      xaxis: { categories: lineData.categories },
+      yaxis: { title: { text: 'Products Sold' } }
+    };
+    new ApexCharts(document.querySelector("#line-chart"), lineChartOptions).render();
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    fetchData('yearly');
+  });
+</script>
+
+<%- include('../adminLayouts/homefooter.ejs') %>
+
+
+
+...........................................................................................
+//chart controller.js
+
+const Order = require('../model/orderModel');
+
+
+const monthlyBarChart = async (req, res) => {
+  try {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+    const aggregationPipeline = [
+      {
+        $match: {
+          orderPlacedAt: { $gte: firstDayOfMonth, $lt: lastDayOfMonth },
+        },
+      },
+      {
+        $unwind: "$products",
+      },
+      {
+        $lookup: {
+          from: "products", // The name of the Product collection
+          localField: "products.product",
+          foreignField: "_id",
+          as: "productData",
+        },
+      },
+      {
+        $unwind: "$productData",
+      },
+      {
+        $group: {
+          _id: "$productData._id",
+          name: { $first: "$productData.name" },
+          totalQuantity: { $sum: "$products.quantity" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: 1,
+          averageQuantity: { $divide: ["$totalQuantity", "$count"] },
+        },
+      },
+      {
+        $sort: { averageQuantity: -1 },
+      },
+      {
+        //$limit: 5,
+        $limit: 10,
+      },
+    ];
+
+    const top5Products = await Order.aggregate(aggregationPipeline);
+
+    const top5AverageQuantities = top5Products.map((product) => parseFloat(product.averageQuantity.toFixed(2)));
+
+    const top5ProductNames = top5Products.map((product) => product.name);
+
+    console.log("Top 5 Average Quantities:", top5AverageQuantities);
+    console.log("Corresponding Product Names:", top5ProductNames);
+
+    const response = {
+      top5AverageQuantities,
+      top5ProductNames,
+    };
+
+    res.status(200).json(response);
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+const yearlyBarChart = async (req, res) => {
+  try {
+    const today = new Date();
+    const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+    const lastDayOfYear = new Date(today.getFullYear() + 1, 0, 1);
+
+    const aggregationPipeline = [
+      {
+        $match: {
+          orderPlacedAt: { $gte: firstDayOfYear, $lt: lastDayOfYear },
+        },
+      },
+      {
+        $unwind: "$products",
+      },
+      {
+        $lookup: {
+          from: "products", // The name of the Product collection
+          localField: "products.product",
+          foreignField: "_id",
+          as: "productData",
+        },
+      },
+      {
+        $unwind: "$productData",
+      },
+      {
+        $group: {
+          _id: "$productData._id",
+          name: { $first: "$productData.name" },
+          totalQuantity: { $sum: "$products.quantity" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: 1,
+          averageQuantity: { $divide: ["$totalQuantity", "$count"] },
+        },
+      },
+      {
+        $sort: { averageQuantity: -1 },
+      },
+      {
+       // $limit: 5,
+        $limit: 10,
+      },
+    ];
+
+    const top5Products = await Order.aggregate(aggregationPipeline);
+
+    const top5AverageQuantities = top5Products.map((product) => parseFloat(product.averageQuantity.toFixed(2)));
+    const top5ProductNames = top5Products.map((product) => product.name);
+
+    
+
+    const response = {
+      top5AverageQuantities,
+      top5ProductNames,
+    };
+
+    res.status(200).json(response);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+const monthlyAreaChart = async (req, res) => {
+    try {
+  
+      const getMonthlyCounts = async () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const monthlySalesCounts = [];
+        const monthlyPurchaseCounts = [];
+        const monthLabels = [];
+  
+        const targetYear = 2023; // Change this to the desired year
+  
+        const startOfYear = new Date(targetYear, 0, 1);
+        const endOfYear = new Date(targetYear + 1, 0, 0);
+  
+        const minMonth = await Order.find({ orderPlacedAt: { $gte: startOfYear, $lt: endOfYear } }).sort({ orderPlacedAt: 1 }).limit(1).then(orders => orders[0]?.orderPlacedAt.getMonth());
+        const maxMonth = await Order.find({ orderPlacedAt: { $gte: startOfYear, $lt: endOfYear } }).sort({ orderPlacedAt: -1 }).limit(1).then(orders => orders[0]?.orderPlacedAt.getMonth());
+  
+        console.log(minMonth);
+        console.log(maxMonth);
+  
+  
+  
+        console.log(minMonth);
+        console.log(maxMonth);
+        if (minMonth === undefined || maxMonth === undefined) {
+          // No data available, handle accordingly
+          return {
+            monthlyPurchaseCounts,
+            monthlySalesCounts,
+            monthLabels
+          };
+        }
+  
+        for (let month = minMonth; month <= maxMonth; month++) {
+          const firstDayOfMonth = new Date(year, month, 1);
+          const lastDayOfMonth = new Date(year, month + 1, 0);
+  
+          const purchaseCount = await Order.find({
+            orderPlacedAt: { $gte: firstDayOfMonth, $lt: lastDayOfMonth }
+          }).count();
+  
+          const salesCount = await Order.find({
+            orderPlacedAt: { $gte: firstDayOfMonth, $lt: lastDayOfMonth },
+            status: 'Delivered'
+          }).count();
+  
+          monthlyPurchaseCounts.push(purchaseCount);
+          monthlySalesCounts.push(salesCount);
+          monthLabels.push(firstDayOfMonth.toLocaleString('en-US', { month: 'long' }));
+        }
+  
+        return {
+          monthlyPurchaseCounts,
+          monthlySalesCounts,
+          monthLabels
+        };
+      };
+  
+      // Example usage
+      const result = await getMonthlyCounts();
+      console.log("Monthly Purchase Counts:", result.monthlyPurchaseCounts);
+      console.log("Monthly Sales Counts:", result.monthlySalesCounts);
+      console.log("Month Labels:", result.monthLabels);
+  
+      const response = {
+        purchase: result.monthlyPurchaseCounts,
+        sales: result.monthlySalesCounts,
+        months: result.monthLabels
+      }
+      res.status(200).json(response);
+  
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
+  
+  const yearlyAreaChart = async (req, res) => {
+    try {
+      const getYearlyCounts = async () => {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const startYear = 2019;
+        const yearlySalesCounts = [];
+        const yearlyPurchaseCounts = [];
+        const yearLabels = [];
+  
+        for (let year = startYear; year <= currentYear; year++) {
+          const firstDayOfYear = new Date(year, 0, 1)
+          const lastDayOfYear = new Date(year + 1, 0, 0)
+  
+          const purchaseCount = await Order.find({
+            orderPlacedAt: { $gte: firstDayOfYear, $lt: lastDayOfYear }
+          }).count();
+  
+          const salesCount = await Order.find({
+            orderPlacedAt: { $gte: firstDayOfYear, $lt: lastDayOfYear },
+            status: 'Delivered'
+          }).count();
+  
+          yearlyPurchaseCounts.push(purchaseCount);
+          yearlySalesCounts.push(salesCount);
+          yearLabels.push(year.toString());
+        }
+  
+        return {
+          yearlyPurchaseCounts,
+          yearlySalesCounts,
+          yearLabels
+        };
+      };
+  
+      // Example usage
+      const result = await getYearlyCounts();
+      console.log("Yearly Purchase Counts:", result.yearlyPurchaseCounts);
+      console.log("Yearly Sales Counts:", result.yearlySalesCounts);
+      console.log("Year Labels:", result.yearLabels);
+  
+      const response = {
+        purchase: result.yearlyPurchaseCounts,
+        sales: result.yearlySalesCounts,
+        months: result.yearLabels
+      };
+      res.status(200).json(response);
+  
+    } catch (err) {
+      console.log(err.message);
+      res.status(500).send('Internal Server Error');
+    }
+  };
+  
+  const piechart = async (req, res) => {
+    try {
+      // Fetch data from the database or calculate as needed
+      const pieChartData = await Order.aggregate([
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+          },
+        },
+      ]);
+  
+      const labels = pieChartData.map(data => data._id);
+      const series = pieChartData.map(data => data.count);
+  
+      res.json({ labels, series });
+    } catch (error) {
+      console.error('Error fetching pie chart data:', error.message);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+  
+  const linechart = async (req,res)=>{
+    try {
+      const categoryId = req.query.categoryId;
+    
+      const productFilter = categoryId ? { category_id: categoryId } : {};
+      
+      const orders = await Order.find().populate({
+        path: 'products.product',
+        match: productFilter,
+      });
+    
+      const lineChartData = {
+        categories: [],
+        data: [],
+      };
+    
+      orders.forEach((order) => {
+        order.products.forEach((productOrder) => {
+          const product = productOrder.product;
+    
+          // Check if product is not null or undefined
+          if (product) {
+            const quantity = productOrder.quantity;
+    
+            if (!categoryId || (product.category_id && product.category_id.toString() === categoryId)) {
+              if (!lineChartData.categories.includes(product.name)) {
+                lineChartData.categories.push(product.name);
+              }
+    
+              const dataIndex = lineChartData.categories.indexOf(product.name);
+              if (lineChartData.data[dataIndex]) {
+                lineChartData.data[dataIndex] += quantity;
+              } else {
+                lineChartData.data[dataIndex] = quantity;
+              }
+            }
+          }
+        });
+      });
+    
+      res.json(lineChartData);
+    } catch (error) {
+      console.error('Error fetching line chart data:', error.message);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+  
+  module.exports = {
+    monthlyBarChart,
+    yearlyBarChart,
+    monthlyAreaChart,
+    yearlyAreaChart,
+    piechart,
+    linechart
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..........................................................................................................
+..................................................................................................
+
+//checkoutcontroller
+
+
+const Razorpay = require('razorpay');
+const Order = require('../model/orderModel');
+const Product = require('../model/productModel');
+const Cart = require('../model/cartModel');
+const User = require('../model/userModel');
+const Wallet = require('../model/walletHistoryModel')
+
+
+//Instantiate Razorpay
+const { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } = process.env;
+const razorpayInstance = new Razorpay({
+    key_id: RAZORPAY_KEY_ID,
+    key_secret: RAZORPAY_KEY_SECRET,
+})
+
+
+const loadCheckout = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
+
+        const cart = await Cart.findOne({ userId }).populate('products.product');
+
+        const user = await User.findById(userId).exec();
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        let totalPrice = 0;
+        for (const item of cart.products) {
+            totalPrice += item.product.price * item.quantity;
+        }
+
+        const cartData = {
+            products: cart.products,
+            totalPrice: totalPrice
+        };
+
+        res.render('checkOut', { userId, cartData, user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+
+const placeOrder = async (req, res) => {
+  try {
+      const userId = req.session.user_id;
+      if (!userId) {
+          return res.redirect('/home'); // Return immediately after redirect to avoid further execution
+      }
+
+      const { payment, name, city, email, address, pincode, state } = req.body;
+
+      const cartData = await Cart.findOne({ userId }).populate('products.product');
+      if (!cartData || cartData.products.length === 0) {
+          console.error('Error loading cart: CartData array is empty or not found.');
+          return res.redirect('/allProduct');
+      }
+
+      const productsArray = cartData.products.map(product => ({
+          product: product.product._id,
+          price: product.product.price,
+          quantity: product.quantity,
+      }));
+      const totalPrice = productsArray.reduce((sum, product) => sum + product.price * product.quantity, 0);
+
+      // Handle COD payment
+      if (payment === 'COD') {
+          const orderData = new Order({
+              userId: userId,
+              products: productsArray,
+              name: name,
+              email: email,
+              address: { address, city, pincode, state },
+              paymentMethod: 'COD',
+              quantity: productsArray.reduce((sum, product) => sum + product.quantity, 0),
+              totalPrice: totalPrice,
+          });
+
+          const validationResult = orderData.validateSync();
+          if (validationResult) {
+              const errors = Object.values(validationResult.errors).map(err => err.message);
+              return res.status(400).json({ error: errors });
+          }
+
+          const savedOrder = await orderData.save();
+          if (!savedOrder) throw new Error('Failed to save COD order');
+
+          // Update Cart after placing the order
+          await Cart.updateOne(
+              { userId },
+              { $pull: { products: { product: { $in: productsArray.map(p => p.product) } } } }
+          );
+
+          // Handle referral and wallet logic
+          await handleReferralAndWallet(userId);
+
+          return res.status(200).json({ message: 'Order Placed (COD)', payment: 'COD' });
+      }
+      // Handle Wallet payment
+      else if (payment === 'WALLET') {
+          const wallet = await Wallet.findOne({ userId });
+          if (!wallet || totalPrice > wallet.totalPrice) {
+              return res.status(400).json({ errorMessages: 'Insufficient balance. Choose another option.' });
+          }
+
+          const updatedWalletTotal = wallet.totalPrice - totalPrice;
+          const orderData = new Order({
+              userId: userId,
+              products: productsArray,
+              name: name,
+              email: email,
+              address: { address, city, pincode, state },
+              paymentMethod: 'WALLET',
+              quantity: productsArray.reduce((sum, product) => sum + product.quantity, 0),
+              totalPrice: totalPrice,
+          });
+
+          await orderData.save();
+          await Wallet.findOneAndUpdate({ userId }, { totalPrice: updatedWalletTotal });
+          await Cart.updateOne(
+              { userId },
+              { $pull: { products: { product: { $in: productsArray.map(p => p.product) } } } }
+          );
+
+          return res.status(200).json({ message: 'Order Placed', payment: 'WALLET' });
+      }
+      // Handle UPI payment using Razorpay
+      else if (payment === 'UPI') {
+          const amount = totalPrice * 100; // Amount in paise
+          const options = {
+              amount,
+              currency: "INR",
+              receipt: generateOrderId(),
+          };
+
+          const order = await razorpayInstance.orders.create(options);
+          if (!order) return res.status(500).json({ error: 'Failed to create Razorpay order' });
+
+          // Save Razorpay order info in session (temporary)
+          req.session.razorpayOrder = {
+              userId: userId,
+              products: productsArray,
+              name: name,
+              email: email,
+              address: { address, city, pincode, state },
+              paymentMethod: 'UPI',
+              quantity: productsArray.reduce((sum, product) => sum + product.quantity, 0),
+              totalPrice: totalPrice,
+              razorpayOrderId: order.id
+          };
+
+          const response = {
+              method: "UPI",
+              success: true,
+              amount,
+              key_id: RAZORPAY_KEY_ID,
+              order,
+          };
+
+          return res.status(200).json({ response });
+      } else {
+          return res.status(400).json({ error: 'Invalid payment method' });
+      }
+  } catch (error) {
+      console.error(error.message);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const handleReferralAndWallet = async (userId) => {
+  const user = await User.findById(userId);
+  if (user.refferedCode && !user.is_reffered) {
+      const count = await Wallet.countDocuments({ userId });
+      if (count === 0) {
+          const wallet = new Wallet({ userId, totalPrice: 50 });
+          await wallet.save();
+          await User.findByIdAndUpdate(userId, { is_reffered: true });
+      }
+  }
+
+  const referredUser = await User.findOne({ referalCode: user.refferedCode });
+  if (referredUser && !user.is_reffered) {
+      const referredUserWallet = await Wallet.findOne({ userId: referredUser._id });
+      if (!referredUserWallet) {
+          await new Wallet({ userId: referredUser._id, totalPrice: 100 }).save();
+      } else {
+          await Wallet.findOneAndUpdate({ userId: referredUser._id }, { $inc: { totalPrice: 100 } });
+      }
+  }
+};
+
+function generateOrderId() {
+  const timestamp = Date.now().toString(); // Get current timestamp
+  const randomString = Math.random().toString(36).substring(2, 8); // Generate a random string
+
+  // Concatenate timestamp and random string to create the order ID
+  const orderId = `${timestamp}-${randomString}`;
+
+  return orderId;
+}
+
+const razorpayVerify = async (req, res) => {
+  try {
+      const userId = req.session.user_id;
+      const cartData = await Cart.findOne({ userId }).populate('products.product').lean();
+      if (!cartData) {
+          throw new Error('Cart not found');
+      }
+
+      const { quantity, price, name } = req.body;
+      const quantityArray = Array.isArray(quantity) ? quantity.map(Number) : [Number(quantity)];
+      const priceArray = Array.isArray(price) ? price.map(Number) : [Number(price)];
+
+      if (quantityArray.some(isNaN) || priceArray.some(isNaN)) {
+          throw new Error('Invalid quantity or price values');
+      }
+
+      const productsArray = quantityArray.map((quantity, index) => ({
+          product: cartData.products[index].product._id,
+          quantity: parseInt(quantity),
+          price: parseFloat(priceArray[index]),
+      }));
+
+      const totalPrice = productsArray.reduce((sum, product) => sum + product.price * product.quantity, 0);
+
+      const orderData = new Order({
+          userId: userId,
+          products: productsArray,
+          name: req.body.name,
+          email: req.body.email,
+          address: {
+              address: req.body.address,
+              city: req.body.city,
+              pincode: req.body.pincode,
+              state: req.body.state,
+          },
+          paymentMethod: req.body.payment,
+          quantity: productsArray.reduce((sum, product) => sum + product.quantity, 0),
+          totalPrice: totalPrice,
+      });
+
+      const savedOrder = await orderData.save();
+      if (!savedOrder) {
+          throw new Error('Failed to save order');
+      }
+
+      await Cart.updateOne({ userId }, { $pull: { products: { product: { $in: cartData.products.map(p => p.product) } } } });
+      await handleReferralAndWallet(userId);
+
+      const response = {
+          success: true,
+          message: 'Order Placed',
+          payment: req.body.payment,
+      };
+
+      res.status(200).json(response);
+  } catch (err) {
+      console.error(err.message);
+      res.status(400).json({ error: err.message });
+  }
+};
+
+const orderPlaceLoad = async (req, res) => {
+  try {
+      const userId = req.session.user_id;
+      const orderDetails = await Order.findOne({ userId }).populate('products.product').sort({ _id: -1 }).lean();
+      res.render('order-confirmation', { orderDetails, userId: userId });
+      await Cart.deleteOne({ userId });
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+module.exports = {
+  loadCheckout,
+  placeOrder,
+  orderPlaceLoad,
+  razorpayVerify,
+};
+
+
+
+

@@ -1,0 +1,161 @@
+<%- include('../userLayouts/loginheader.ejs') %>
+
+<style>
+  .error-message {
+      color: red;
+      font-weight: bold;
+      margin-bottom: 12px;
+  }
+</style>
+
+<nav class="navbar navbar-dark fixed-top bg-light" >
+    <div class="container-fluid">
+      <a class="navbar-brand text-dark" href="#">PLANTY</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="offcanvasDarkNavbarLabel">Dark offcanvas</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Dropdown
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dark">
+                <li><a class="dropdown-item" href="#">Action</a></li>
+                <li><a class="dropdown-item" href="#">Another action</a></li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="#">Something else here</a></li>
+              </ul>
+            </li>
+          </ul>
+          <form class="d-flex mt-3" role="search">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-success" type="submit">Search</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+
+    <div class="wrapper">
+        <div class="container main">
+            <div class="row">
+                <div class="col-md-6 side-image">
+
+                    <!-------------      image     ------------->
+
+                </div>
+
+                <div class="col-md-6 right">
+
+                    <div class="input-box">
+                      <form action="/login" method="post" id="loginForm">
+                        <header class="Login">LOGIN</header>
+                            <% if(typeof message !=='undefined' ){ %>
+                                <h4 style="color: rgb(226, 16, 16); font-size: 15px;font-weight: bold;" >
+                                    <%= message %>
+                                </h4>
+                                <% } %>
+                                    <div class="input-field">
+                                        <input type="email" class="input" name="email" id="email" required="" autocomplete="off">
+                                        <label for="email">Email</label>
+                                        <span class="error-message" id="email-error"></span>
+                                    </div>
+                                    <div class="input-field">
+                                      <input type="password" class="input" name="password" id="pass" required="">
+                                      <label for="pass">Password</label>
+                                      <span class="error-message" id="password-error"></span>
+                                  </div>
+                                    <div class="input-field">
+
+                                        <input type="submit" class="submit" value="LOGIN">
+                                    </div>
+                                    <div class="signin">
+                                        <span><a href="/forget">forgot password?</a></span>
+                                    </div>
+                                    <div class="signin">
+                                        <span>Don't have an Account? <a href="/signup">Signup</a></span>
+                                    </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+      <!-- footer -->
+  <footer id="footer" data-aos="fade-up" data-aos-duration="1500">
+    <h1 class="text-center">Planty</h1>
+    <div class="icons text-center">
+      <i class="bx bxl-twitter"></i>
+      <i class="bx bxl-facebook"></i>
+      <i class="bx bxl-google"></i>
+      <i class="bx bxl-skype"></i>
+      <i class="bx bxl-instagram"></i>
+    </div>
+    <div class="copyright text-center">
+      &copy; Copyright <strong>Planty</strong> .All Rights Reserved
+    </div>
+  </footer>
+  <!-- footer -->
+
+</div>
+
+
+   
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+          const loginForm = document.getElementById('loginForm');
+  
+          loginForm.addEventListener('submit', function (event) {
+              const emailInput = document.getElementById('email');
+              const passwordInput = document.getElementById('pass');
+  
+              // Reset previous error messages
+              document.getElementById('email-error').textContent = '';
+              document.getElementById('password-error').textContent = '';
+  
+              // Validate email
+              if (!isValidEmail(emailInput.value)) {
+                  document.getElementById('email-error').textContent = 'Please provide a valid email address.';
+                  event.preventDefault();
+                  return;
+              }
+  
+              // Validate password
+              if (!isValidPassword(passwordInput.value)) {
+                  document.getElementById('password-error').textContent = 'Password must be at least 6 characters long.';
+                  event.preventDefault();
+                  return;
+              }
+          });
+  
+          function isValidEmail(email) {
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              return emailRegex.test(email);
+          }
+  
+          function isValidPassword(password) {
+              return password.length >= 6;
+          }
+      });
+  </script>
+
+ <%- include('../userLayouts/footer.ejs') %>
+
+
+ 

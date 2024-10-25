@@ -1,0 +1,54 @@
+<%- include('../adminLayouts/homehead.ejs') %>
+
+
+
+  <div class="text-center mt-3">
+    <a href="/admin/viewCategory" class="btn btn-outline-dark">Go Back to View Page</a>
+  </div>
+
+  <div class="container">
+    <form class="mx-auto mt-5 p-4 bg-light" style="max-width: 800px;"
+      action="/admin/editCategory?id=<%= category._id %>" method="post" enctype="application/x-www-form-urlencoded"
+      onsubmit="return validateForm()">
+      <h1 class="text-center">Update Category</h1>
+      <div class="mb-3">
+        <input type="hidden" name="id" value="<%= category._id %>">
+        <input type="text" name="name" id="categoryName" class="form-control" value="<%= category.categoryName %>" />
+        <small id="categoryError" class="text-danger"></small>
+      </div>
+
+      <% if (typeof message !=='undefined' ) { %>
+        <p style="color:rgb(128, 23, 0);font-weight: bold;">
+          <%= message %>
+        </p>
+        <% } %>
+
+          <!-- Submit button -->
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary mt-2">Update</button>
+          </div>
+
+
+    </form>
+  </div>
+
+  <script>
+    function validateForm() {
+      var categoryName = document.getElementById("categoryName").value;
+      var categoryError = document.getElementById("categoryError");
+
+      // Reset error messages and styles
+      categoryError.textContent = "";
+      categoryError.style.color = ""; // Reset the color to default
+
+      // Simple validation, you can add more checks as needed
+      if (categoryName.trim() === "") {
+        categoryError.textContent = "Category Name is required";
+        categoryError.style.color = "red"; // Set the color to red
+        return false;
+      }
+      return true; // Submit the form if validation passes
+    }
+  </script>
+
+  <%- include('../adminLayouts/homefooter.ejs') %>

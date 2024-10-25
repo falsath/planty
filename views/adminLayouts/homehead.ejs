@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Planty</title>
+    <link rel="icon" type="image" href="/public/photo/download (18).jpeg">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css">
+    <script src="https://kit.fontawesome.com/ae360af17e.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/public/admincss/home.css">
+</head>
+
+<body>
+
+    
+ <div class="wrapper"> 
+    <aside id="sidebar" class="js-sidebar">
+        <div class="h-100">
+            <div class="sidebar-logo">
+                <a href="/admin/home"><img src="/public/photo/logooo.png" width="50px" height="50px"> Planty </a>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="sidebar-header">
+                    Admin Elements
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/home" class="sidebar-link">
+                        <i class="fa-solid fa-list pe-2"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/userList" class="sidebar-link" 
+                        aria-expanded="false"><i class="fa-solid fa-file-lines pe-2"></i>
+                        User
+                    </a>
+                </li>
+            </ul>
+    
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed" data-bs-target="#category" data-bs-toggle="collapse"
+                    aria-expanded="false"><i class="fa-solid fa-sliders pe-2"></i>
+                    Category
+                </a>
+                <ul id="category" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="/admin/addCategory" class="sidebar-link">Add</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/admin/viewCategory" class="sidebar-link">View</a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed" data-bs-target="#order" data-bs-toggle="collapse"
+                    aria-expanded="false"><i class="fa-solid fa-sliders pe-2"></i>
+                    Product
+                </a>
+                <ul id="order" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="/admin/addProduct" class="sidebar-link">Add</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/admin/viewProduct" class="sidebar-link">View</a>
+                    </li>
+                </ul>
+            </li>
+
+
+            <li class="sidebar-item">
+                <a href="/admin/viewOrder" class="sidebar-link" 
+                    aria-expanded="false"><i class="fa-solid fa-sliders pe-2"></i>
+                    Orders
+                </a>
+            </li>
+
+
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed" data-bs-target="#offers" data-bs-toggle="collapse"
+                    aria-expanded="false"><i class="fa-solid fa-sliders pe-2"></i>
+                    Offers
+                </a>
+                <ul id="offers" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="/admin/add-offers" class="sidebar-link">Add</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/admin/offers" class="sidebar-link">View</a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="sidebar-item">
+                <a href="/admin/reports" class="sidebar-link" 
+                    aria-expanded="false"><i class="fa-solid fa-sliders pe-2"></i>
+                    Sales Report
+                </a>
+            </li>
+
+
+            
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed" data-bs-target="#coupons" data-bs-toggle="collapse"
+                    aria-expanded="false"><i class="fa-solid fa-sliders pe-2"></i>
+                    Coupons
+                </a>
+                <ul id="coupons" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="/admin/add-coupon" class="sidebar-link">Add</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/admin/coupons" class="sidebar-link">View</a>
+                    </li>
+                </ul>
+            </li>
+
+            
+            
+            <hr>
+            <li class="sidebar-item">
+                <a href="/admin/logout" class="sidebar-link">LOGOUT</a>
+            </li>
+
+        </div>
+    </aside>
+    <div class="main">
+        <nav class="navbar navbar-expand px-3 border-bottom">
+            <button class="btn" id="sidebar-toggle" type="button">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse navbar">
+                <ul class="navbar-nav">
+                    
+                     <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
+                            <img src="/public/photo/user.png" class="avatar img-fluid rounded" alt="">
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a href="/admin/logout" class="dropdown-item">Logout</a>
+                        </div>
+                    </li> 
+                </ul>
+            </div>
+        </nav>

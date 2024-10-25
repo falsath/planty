@@ -1,0 +1,203 @@
+<%- include('../userLayouts/userhead.ejs') %>
+
+<style>
+  body {
+    background-color: #f5f0f0
+  }
+
+  .card {
+    border: none
+  }
+
+  .product {
+    background-color: #eee
+  }
+
+  .brand {
+    font-size: 13px
+  }
+
+  .act-price {
+    color: red;
+    font-weight: 700
+  }
+
+  .dis-price {
+    text-decoration: line-through
+  }
+
+  .about {
+    font-size: 14px
+  }
+
+  .color {
+    margin-bottom: 10px
+  }
+
+  label.radio {
+    cursor: pointer
+  }
+
+  label.radio input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+    pointer-events: none
+  }
+
+  label.radio span {
+    padding: 2px 9px;
+    border: 2px solid #ff0000;
+    display: inline-block;
+    color: #ff0000;
+    border-radius: 3px;
+    text-transform: uppercase
+  }
+
+  label.radio input:checked+span {
+    border-color: #ff0000;
+    background-color: #ff0000;
+    color: #fff
+  }
+
+  .btn-danger {
+    background-color: #ff0000 !important;
+    border-color: #ff0000 !important
+  }
+
+  .btn-danger:hover {
+    background-color: #da0606 !important;
+    border-color: #da0606 !important
+  }
+
+  .btn-danger:focus {
+    box-shadow: none
+  }
+
+  .cart i {
+    margin-right: 10px
+  }
+
+  #main-image {
+    cursor: pointer;
+  }
+
+  #zoom-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .zoom-image {
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center;
+    transition: transform 0.3s ease-out;
+  }
+</style>
+
+<div class="mt-5 ms-5">
+  <a href="/allProduct" class="btn btn-dark">BACK</a>
+</div>
+<div class="container mt-5 mb-5 ">
+  <div class="row d-flex justify-content-center">
+    <div class="col-md-10">
+      <div class="card">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="images p-3">
+              <!-- Zoom Overlay -->
+              <div id="zoom-overlay" class="zoom-overlay">
+                <img id="zoom-image" class="zoom-image" alt="Zoomed Image">
+              </div>
+              <!-- Main Image -->
+              <div class="text-center p-4">
+                <img id="main-image" src="/public/productImage/<%= product.image[0] %>" width="250" class="img-fluid" />
+              </div>
+              <!-- Thumbnail Images -->
+              <div class="thumbnail text-center">
+                <% if (product && product.image && product.image.length > 1) { %>
+                  <% for (let i = 0; i < product.image.length; i++) { %>
+                    <img onclick="change_image(this)" src="/public/productImage/<%= product.image[i] %>" width="70" style="cursor: pointer;" class="img-thumbnail mb-2">
+                  <% } %>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <!-- Product Information -->
+          <div class="col-md-6" style="background-color: #eee;">
+            <div class="product p-4">
+              <h5 class="text-uppercase"><%= product.name %></h5>
+              <div class="price d-flex flex-row align-items-center">
+                <% if (product.is_offer) { %>
+                  <span class="act-price">Rs. <%= product.price %></span>
+                  <div class="ml-2"> <small class="dis-price"><s>Rs. <%= product.earlierPrice %></s></small></div>
+                <% } else { %>
+                  Rs.<%= product.price %>
+                <% } %>
+              </div>
+              <p class="about mt-3"><%= product.description %></p>
+              <div class="cart mt-4 align-items-center">
+                <a href="/add-to-cart/<%= product._id %>" class="btn btn-danger text-uppercase mr-2 px-4">Add to cart</a>
+                <i class="fa fa-heart text-muted"></i>
+                <i class="fa fa-share-alt text-muted"></i><br>
+                <p style="padding-top: 20px;">Plants are a kingdom of life forms that includes familiar organisms such as trees, herbs, bushes, grasses,
+                  ,vines, ferns and mosses. Through photosynthesis, they convert water and carbon dioxide into the oxygen
+                   we breathe and the sugars that provide the primary fuel for life.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var mainImage = document.getElementById("main-image");
+    var zoomOverlay = document.getElementById("zoom-overlay");
+    var zoomImage = document.getElementById("zoom-image");
+
+    // Show zoom overlay on mouse enter
+    mainImage.addEventListener("mouseenter", function () {
+      zoomImage.src = mainImage.src;
+      zoomOverlay.style.display = "flex";
+    });
+
+    // Implement zoom functionality on mouse move
+    mainImage.addEventListener("mousemove", function (e) {
+      var rect = mainImage.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+
+      var scale = 2; // Adjust the scale factor as needed
+      var translateX = ((x / rect.width) * (zoomImage.naturalWidth - rect.width)) * -1;
+      var translateY = ((y / rect.height) * (zoomImage.naturalHeight - rect.height)) * -1;
+
+      zoomImage.style.transform = "translate(" + translateX + "px, " + translateY + "px) scale(" + scale + ")";
+    });
+
+    // Hide zoom overlay on mouse leave
+    mainImage.addEventListener("mouseleave", function () {
+      resetZoom();
+    });
+
+    zoomOverlay.addEventListener("mouseleave", function () {
+      resetZoom();
+    });
+
+    function resetZoom() {
+      zoomOverlay.style.display = "none";
+      zoomImage.style.transform = "none";
+    }
+  });
+</script>

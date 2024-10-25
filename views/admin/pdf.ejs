@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Details</title>
+</head>
+
+
+<body>
+  <div class="container">
+    <h1 style="text-align: center; font-weight: bolder;">ORDER DETAILS</h1>
+
+    <div style="text-align: center; margin-bottom: 20px;">
+      <p style="font-weight: bold; font-size: larger;">Filtered Date: <%= filteredDate %>
+      </p>
+    </div>
+
+    <table class="table my-3" id="userTable" border="1">
+
+      <thead>
+        <tr>
+          <th scope="col" class="table-header">Name</th>
+          <th scope="col" class="table-header">Quantity</th>
+          <th scope="col" class="table-header">Total Price</th>
+          <th scope="col" class="table-header">Address</th>
+          <th scope="col" class="table-header">Full name</th>
+          <th scope="col" class="table-header">Email</th>
+          <th scope="col" class="table-header">paymentMethod</th>
+          <th scope="col" class="table-header">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% let grandTotal=0; %>
+          <% if (orderData.length===0) { %>
+            <!-- Display a message when there are no orders -->
+            <tr>
+              <td colspan="8"
+                style="border: 1px solid black; text-align: center; font-size: larger; font-weight: bold;">
+                No orders available for the selected dates.
+              </td>
+            </tr>
+            <% } else { %>
+
+              <% orderData.forEach(function(value, index) { %>
+
+                <tr style="margin-bottom: 10px;">
+
+                  <td style="border: 1px solid black;">
+                    <% if (value.products && value.products.length> 0) { %>
+                      <% value.products.forEach(function(product) { %>
+                        <%= product.product.name %>
+                          <% }); %>
+                            <% } else { %>
+                              N/A
+                              <% } %>
+                  </td>
+
+                  <td style="border: 1px solid black;">
+                    <% if (value.products && value.products.length> 0) { %>
+                      <% value.products.forEach(function(product) { %>
+                        Quantity: <%= product.quantity %>
+                          <% }); %>
+                            <% } else { %>
+                              N/A
+                              <% } %>
+                  </td>
+
+                  <td style="border: 1px solid black;">
+                    <% let orderTotal=0; %>
+                      <% if (value.products && value.products.length> 0) { %>
+                        <% value.products.forEach(function(product) { %>
+                          Total Order Price: <%= product.quantity * product.product.price %>/-
+                            <% orderTotal +=product.quantity * product.product.price; %>
+                              <% }); %>
+                                <% } else { %>
+                                  N/A
+                                  <% } %>
+
+
+                  </td>
+
+                  <% if (Array.isArray(value.address)) { %>
+                    <td style="border: 1px solid black;">
+                      <% value.address.forEach(function(address) { %>
+                        <%= address.address %><br>
+                          Pincode: <%= address.pincode %><br>
+                            District: <%= address.district %><br>
+                              City: <%= address.city %>
+                                <% }); %>
+                    </td>
+                    <% } else if (value.address && typeof value.address==='object' ) { %>
+                      <td style="border: 1px solid black;">
+                        <%= value.address.address %><br>
+                          Pincode: <%= value.address.pincode %><br>
+                            District: <%= value.address.district %><br>
+                              City: <%= value.address.city %>
+                      </td>
+                      <% } else { %>
+                        <td style="border: 1px solid black;">N/A</td>
+                        <% } %>
+
+                          <td style="border: 1px solid black;">
+                            <%= value.name %>
+                          </td>
+                          <td style="border: 1px solid black;">
+                            <%= value.email %>
+                          </td>
+                          <td style="border: 1px solid black;">
+                            <%= value.paymentMethod %>
+                          </td>
+                          <td style="border: 1px solid black;">
+                            <%= value.orderPlacedAt %>
+                          </td>
+                </tr>
+
+                <% grandTotal +=orderTotal; %>
+
+                  <% }); %>
+
+                    <tr>
+                      <td colspan="8"
+                        style="border: 1px solid black; text-align: right; font-size: larger;font-weight: bold;">
+                        Grand Total: <%= grandTotal %>/-
+                      </td>
+                    </tr>
+
+                    <% if (orderData.length > 0) { %>
+                      <div style="margin-top: 20px; padding: 20px; border: 1px solid #ddd; background-color: #f9f9f9; border-radius: 8px;">
+                        <h2 style="font-weight: bold; color: #333;">Sales Summary</h2>
+                        <div style="margin-top: 10px;">
+                            <p style="margin-bottom: 5px;">Total Orders: <%= orderData.length %></p>
+                            <p style="margin-bottom: 5px;">Overall Sales: <%= grandTotal %> /-</p>
+                    
+                            <!-- Calculate and display product sales summary -->
+                            <% let productSales = {}; %>
+                            <% orderData.forEach(function(order) { %>
+                                <% order.products.forEach(function(product) { %>
+                                    <% const productName = product.product.name; %>
+                                    <% const quantitySold = product.quantity; %>
+                    
+                                    <% if (!productSales[productName]) { %>
+                                        <% productSales[productName] = 0; %>
+                                    <% } %>
+                    
+                                    <% productSales[productName] += quantitySold; %>
+                                <% }); %>
+                            <% }); %>
+                    
+                            <!-- Find the product with the maximum sales -->
+                            <% const mostSoldProduct = Object.keys(productSales).reduce((a, b) => productSales[a] > productSales[b] ? a : b); %>
+                            <p style="margin-bottom: 5px;">Most Sold Product: <%= mostSoldProduct %> (Quantity: <%= productSales[mostSoldProduct] %>)</p>
+                    
+                            <!-- Find the product with the minimum sales -->
+                            <% const leastSoldProduct = Object.keys(productSales).reduce((a, b) => productSales[a] < productSales[b] ? a : b); %>
+                            <p>Least Sold Product: <%= leastSoldProduct %> (Quantity: <%= productSales[leastSoldProduct] %>)</p>
+                        </div>
+                    </div>
+                    
+                    <% } %>
+                    
+
+                    <% } %>
+      </tbody>
+    </table>
+  </div>
+</body>
+
+</html>

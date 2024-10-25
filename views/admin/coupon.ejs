@@ -1,0 +1,68 @@
+<%- include('../adminLayouts/homehead.ejs') %>
+
+<div class="container">
+  <form action="/admin/add-coupon" method="POST" class="mx-auto mt-5 p-4 bg-light" style="max-width: 600px;" onsubmit="return validateForm()">
+    <h1 class="text-center mb-4">ADD COUPONS</h1>
+
+    <div class="mb-3">
+      <label class="form-label">Enter Coupon Code</label>
+      <input type="text" class="form-control" name="code" id="code">
+      <small id="codeError" class="text-danger"></small>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Enter Discount</label>
+      <input type="number" class="form-control" name="discount" id="discount">
+      <small id="discountError" class="text-danger"></small>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Minimum Purchase</label>
+      <input type="number" class="form-control" name="minimumPurchase" id="minPurchase">
+      <small id="minPurchaseError" class="text-danger"></small>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Discount Type</label>
+      <select class="form-select" name="discountType" id="discountType">
+        <option value="percentage">Percentage</option>
+        <option value="flat">Flat</option>
+      </select>
+      <small id="discountTypeError" class="text-danger"></small>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Enter Expiry Date</label>
+      <input type="datetime-local" class="form-control" name="expiry" id="expiry">
+      <small id="expiryError" class="text-danger"></small>
+    </div>
+
+    <div>
+      <% if (typeof message !== 'undefined') { %>
+        <p style="color:rgb(128, 23, 0);font-weight: bold;">
+          <%= message %>
+        </p>
+      <% } %>
+    </div>
+
+    <div class="text-center">
+      <button type="submit" class="btn btn-outline-success mx-auto">Save Coupon</button>
+    </div>
+  </form>
+</div>
+
+<%- include('../adminLayouts/homefooter.ejs') %>
+
+<script>
+  function validateForm() {
+    const code = document.getElementById('code').value.trim();
+    const discount = document.getElementById('discount').value.trim();
+    const minPurchase = document.getElementById('minPurchase').value.trim();
+    const discountType = document.getElementById('discountType').value.trim();
+    const expiryDate = document.getElementById('expiry').value.trim();
+
+    document.getElementById('codeError').innerHTML = code === '' ? 'Coupon code is required.' : '';
+    document.getElementById('discountError').innerHTML = discount === '' ? 'Discount is required.' : (discount >= 100 ? 'Discount should be less than 100.' : '');
+    document.getElementById('minPurchaseError').innerHTML = minPurchase === '' ? 'Minimum purchase is required.' : '';
+    document.getElementById('discountTypeError').innerHTML = discountType === '' ? 'Discount type is required.' : '';
+    document.getElementById('expiryError').innerHTML = expiryDate === '' ? 'Expiry date is required.' : '';
+
+    return code !== '' && discount !== '' && discount < 100 && minPurchase !== '' && discountType !== '' && expiryDate !== '';
+  }
+</script>

@@ -1,0 +1,133 @@
+<%- include('../adminLayouts/header.ejs') %>
+
+
+<nav class="navbar navbar-dark fixed-top bg-light" >
+    <div class="container-fluid">
+      <a class="navbar-brand text-dark" href="#">PLANTY</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="offcanvasDarkNavbarLabel">Dark offcanvas</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Dropdown
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dark">
+                <li><a class="dropdown-item" href="#">Action</a></li>
+                <li><a class="dropdown-item" href="#">Another action</a></li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="#">Something else here</a></li>
+              </ul>
+            </li>
+          </ul>
+          <form class="d-flex mt-3" role="search">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-success" type="submit">Search</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+
+    <div class="wrapper">
+        <div class="container main">
+            <div class="row">
+                <div class="col-md-6 side-image">
+                    <!-- Image goes here -->
+                </div>
+
+                <div class="col-md-6 right">
+                    <div class="input-box">
+                        <header class="Login">ADMIN LOGIN</header>
+                        <% if (typeof message !=='undefined' ) { %>
+                            <h3 style="color: rgb(226, 16, 16); font-size: 15px; font-weight: bold;">
+                                <%= message %>
+                            </h3>
+                            <% } %>
+                                <form id="loginForm" action="" method="post">
+                                    <div class="input-field">
+                                        <input type="text" class="input" id="email" name="email" required=""
+                                            autocomplete="off">
+                                        <label for="email">Email</label>
+                                        <span class="error-message" id="email-error"></span>
+                                    </div>
+                                    <div class="input-field">
+                                        <input type="password" class="input" name="password" id="pass" required="">
+                                        <label for="pass">Password</label>
+                                        <span class="error-message" id="password-error"></span>
+                                    </div>
+                                    <div class="input-field">
+                                        <input type="submit" class="submit" value="LOGIN">
+                                    </div>
+                                </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .error-message {
+            color: red;
+            font-size: 16px;
+            margin-bottom: 12px
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const loginForm = document.getElementById('loginForm');
+
+            loginForm.addEventListener('submit', function (event) {
+                const emailInput = document.getElementById('email');
+                const passwordInput = document.getElementById('pass');
+
+                // Reset previous error messages
+                document.getElementById('email-error').textContent = '';
+                document.getElementById('password-error').textContent = '';
+
+                // Validate email
+                if (!isValidEmail(emailInput.value)) {
+                    document.getElementById('email-error').textContent = 'Please provide a valid email address.';
+                    event.preventDefault();
+                    return;
+                }
+
+                // Validate password
+                if (!isValidPassword(passwordInput.value)) {
+                    document.getElementById('password-error').textContent = 'Password must be at least 6 characters long.';
+                    event.preventDefault();
+                    return;
+                }
+            });
+
+            function isValidEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            function isValidPassword(password) {
+                return password.length >= 6;
+            }
+        });
+    </script>
+
+
+
+    
+    <%- include('../adminLayouts/footer.ejs') %>

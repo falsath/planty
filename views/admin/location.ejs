@@ -1,0 +1,27 @@
+<%- include('../adminLayouts/homehead.ejs') %>
+
+<div class="container">
+    <h1 class="text-center mb-5">Location</h1>
+    <div class="card-group mt-3">
+        <% location.forEach(function(loc, index) { %>
+            <div class="card me-2" style="width: 9rem;">
+                <div class="card-body">
+                    <h5 class="card-title">District : <%= loc.district %></h5>
+                    <p class="card-text">Pincodes:
+                        <% loc.pincode.forEach(function(pin) { %>
+                            <%= pin %>&nbsp;
+                        <% }); %>
+                    </p>
+                    <a href="/admin/edit-location?id=<%= loc._id %>" class="btn btn-primary">Edit</a>
+                </div>
+            </div>
+
+            <% if ((index + 1) % 4 === 0) { %>
+                </div>
+                <div class="card-group mt-3">
+            <% } %>
+        <% }); %>
+    </div>
+</div>
+
+<%- include('../adminLayouts/homefooter.ejs') %>
