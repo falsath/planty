@@ -87,88 +87,49 @@ const cancelOrder = async (req, res) => {
         const canceledAmount = order.totalPrice;
 
         // Update the order status to "Cancelled"
-        // const updatedOrder = await Order.findByIdAndUpdate(
-        //     orderId,
-        //     {
-        //         $set: { status: 'Cancelled', is_cancelled: true, cancellationReason: reason },
-        //     },
-        //     { new: true }
-        // );
-
         const updatedOrder = await Order.findByIdAndUpdate(
             orderId,
             {
-                $set: { status: 'Cancelled', is_cancelled: true },
-                $inc: { walletAmount: canceledAmount },
+                $set: { status: 'Cancelled', is_cancelled: true, cancellationReason: reason },
             },
             { new: true }
         );
 
-        // if (updatedOrder) {
-        //     // Increment product quantity in the product inventory
-        //     await Promise.all(
-        //         updatedOrder.products.map(async (product) => {
-        //             await Product.findByIdAndUpdate(
-        //                 product.product,
-        //                 { $inc: { quantity: product.quantity } } // Increment product quantity
-        //             );
-        //         })
-        //     );
+        // Find or create the user's wallet
+        let wallet = await Wallet.findOne({ userId: userId });
 
-        const orderData = await Order.findById(orderId);
-
-        // Log to check orderData and user
-        console.log('Order Data:', orderData);
-        console.log('User:', user);
-
-        // Update WalletHistory
-        const walletData = {
-            userId: user,
-            totalPrice: canceledAmount,
-        };
-
-        const wallet1 = await Wallet.findOne({ userId: user });
-         
-
-        console.log("Wallet 1:",wallet1)
-            // Find the user's wallet
-            // const wallet = await Wallet.findOne({ user: userId });
-
-            // if (wallet) {
-            //     // Update the wallet balance by adding the canceled order amount
-            //     wallet.walletBalance += updatedOrder.totalPrice;
-            //     await wallet.save();
-            // } else {
-            //     // Create a new wallet for the user if none exists
-            //     const newWallet = new Wallet({
-            //         user: userId,
-            //         walletBalance: updatedOrder.totalPrice
-            //     });
-            //     await newWallet.save();
-            // }
-
-            if (wallet1) {
-                await Wallet.findByIdAndUpdate(wallet1._id, {
-                    $inc: { totalPrice: canceledAmount },
-                });
-            } else {
-                const wallet = new Wallet(walletData);
-                await wallet.save();
-            }
-
-             // Log to check the final state of wallet history
-        const finalWalletState = await Wallet.findOne({ userId: user });
-        console.log('Final Wallet State:', finalWalletState);
-        if (updatedOrder) {
-            const response = {
-                message: 'Order cancelled successfully',
-            };
-    
-
-            res.status(200).json({ message: 'Order cancelled, product quantities updated, and refund added to wallet' });
+        if (wallet) {
+            // Update wallet balance and add transaction history
+            wallet.walletBalance += canceledAmount;
+            wallet.transactions.push({
+                transactionType: 'credit',
+                amount: canceledAmount,
+                paymentMethod: order.paymentMethod, // assuming paymentMethod is available in `order`
+                quantity: order.quantity, // assuming quantity is available in `order`
+                description: 'Order cancellation refund'
+            });
+            await wallet.save();
         } else {
-            res.status(500).json({ error: 'Error updating order' });
+            // Create a new wallet with the transaction
+            wallet = new Wallet({
+                userId: userId,
+                walletBalance: canceledAmount,
+                transactions: [{
+                    transactionType: 'credit',
+                    amount: canceledAmount,
+                    paymentMethod: order.paymentMethod,
+                    quantity: order.quantity,
+                    description: 'Order cancellation refund'
+                }]
+            });
+            await wallet.save();
         }
+
+        console.log('Order canceled, product quantities updated, and refund added to wallet');
+
+        res.status(200).json({
+            message: 'Order cancelled successfully, refund added to wallet',
+        });
     } catch (error) {
         console.log(error.message);
         res.status(500).json({ error: 'Internal Server Error' });

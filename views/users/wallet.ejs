@@ -96,7 +96,7 @@
 
     <hr>
   
-    <div class="txn-history">
+    <!-- <div class="txn-history">
       <p><b>History</b></p>
     
       <% if (orderData.length===0) { %>
@@ -116,7 +116,43 @@
             class="credit-amount">-<%= item.totalPrice %>/-</span></p>
         <% }); %>
       <% } %>
+    </div> -->
+
+
+    <div class="txn-history">
+      <p><b>History</b></p>
+      
+      <!-- <% if (orderData.length === 0) { %>
+        <p class="txn-list">No transactions</p>
+      <% } else { %>
+        <% orderData.forEach(function(item) { %>
+          <p class="txn-list">
+            Payment: <%= item.paymentMethod %> | Qty: <%= item.quantity %>
+            <span class="<%= item.transactionType === 'debit' ? 'debit-amount' : 'credit-amount' %>">
+              <%= item.transactionType === 'debit' ? '-' : '+' %><%= item.totalPrice %> /-
+            </span>
+          </p>
+        <% }); %>
+      <% } %> -->
+
+
+      <% if (orderData.length === 0 || !orderData.some(order => order.status === 'Cancelled')) { %>
+        <p class="txn-list">No canceled transactions</p>
+      <% } else { %>
+        <% orderData.forEach(function(item) { %>
+          <% if (item.status === 'Cancelled') { %>
+            <p class="txn-list">
+              Payment: <%= item.paymentMethod %> | Qty: <%= item.quantity %>
+              <span class="<%= item.transactionType === 'debit' ? 'debit-amount' : 'credit-amount' %>">
+                <%= item.transactionType === 'debit' ? '-' : '+' %><%= item.totalPrice %> /-
+              </span>
+            </p>
+          <% } %>
+        <% }); %>
+      <% } %>
+      
     </div>
+    
     
   </div>
 

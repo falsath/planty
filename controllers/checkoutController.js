@@ -119,34 +119,132 @@ if (payment === 'COD' && totalPrice > 1000) {
 
           return res.status(200).json({ message: 'Order Placed (COD)', payment: 'COD' });
       }
-      // Handle Wallet payment
-      else if (payment === 'WALLET') {
-          const wallet = await Wallet.findOne({ userId });
-          if (!wallet || totalPrice > wallet.totalPrice) {
-              return res.status(400).json({ errorMessages: 'Insufficient balance. Choose another option.' });
-          }
+    //   // Handle Wallet payment
+    //   else if (payment === 'WALLET') {
+    //       const wallet = await Wallet.findOne({ userId });
+    //       if (!wallet || totalPrice > wallet.totalPrice) {
+    //           return res.status(400).json({ errorMessages: 'Insufficient balance. Choose another option.' });
+    //       }
 
-          const updatedWalletTotal = wallet.totalPrice - totalPrice;
-          const orderData = new Order({
-              userId: userId,
-              products: productsArray,
-              name: name,
-              email: email,
-              address: { address, city, pincode, state },
-              paymentMethod: 'WALLET',
-              quantity: productsArray.reduce((sum, product) => sum + product.quantity, 0),
-              totalPrice: totalPrice,
-          });
+    //       const updatedWalletTotal = wallet.totalPrice - totalPrice;
+    //       const orderData = new Order({
+    //           userId: userId,
+    //           products: productsArray,
+    //           name: name,
+    //           email: email,
+    //           address: { address, city, pincode, state },
+    //           paymentMethod: 'WALLET',
+    //           quantity: productsArray.reduce((sum, product) => sum + product.quantity, 0),
+    //           totalPrice: totalPrice,
+    //       });
 
-          await orderData.save();
-          await Wallet.findOneAndUpdate({ userId }, { totalPrice: updatedWalletTotal });
-          await Cart.updateOne(
-              { userId },
-              { $pull: { products: { product: { $in: productsArray.map(p => p.product) } } } }
-          );
+    //       await orderData.save();
+    //       await Wallet.findOneAndUpdate({ userId }, { totalPrice: updatedWalletTotal });
+    //       await Cart.updateOne(
+    //           { userId },
+    //           { $pull: { products: { product: { $in: productsArray.map(p => p.product) } } } }
+    //       );
 
-          return res.status(200).json({ message: 'Order Placed', payment: 'WALLET' });
-      }
+    //       return res.status(200).json({ message: 'Order Placed', payment: 'WALLET' });
+    //   }
+
+
+
+     // Wallet payment handling
+    //  if (payment === 'WALLET') {
+    //     const wallet = await Wallet.findOne({ userId });
+    //     if (!wallet || totalPrice > wallet.totalPrice) {
+    //         return res.status(400).json({ error: 'Insufficient balance. Choose another payment method.' });
+    //     }
+
+    //     // Calculate the new wallet balance after deducting the total price
+    //     const updatedWalletTotal = wallet.totalPrice - totalPrice;
+
+    //     // Create order with WALLET payment method
+    //     const orderData = new Order({
+    //         userId,
+    //         products: productsArray,
+    //         name,
+    //         email,
+    //         address: { address, city, pincode, state },
+    //         paymentMethod: 'WALLET',
+    //         quantity: productsArray.reduce((sum, product) => sum + product.quantity, 0),
+    //         totalPrice,
+    //     });
+
+    //     const savedOrder = await orderData.save();
+    //     if (!savedOrder) throw new Error('Failed to save WALLET order');
+
+    //     // Update Wallet balance
+    //     await Wallet.findOneAndUpdate({ userId }, { totalPrice: updatedWalletTotal });
+
+    //     // Clear the Cart after placing the order
+    //     await Cart.updateOne(
+    //         { userId },
+    //         { $set: { products: [] } }
+    //     );
+
+    //     // Handle referral and wallet logic
+    //     await handleReferralAndWallet(userId);
+
+    //     return res.status(200).json({ message: 'Order Placed using Wallet', payment: 'WALLET' });
+    // }
+
+
+
+    if (payment === 'WALLET') {
+        const wallet = await Wallet.findOne({ userId });
+        if (!wallet || totalPrice > wallet.walletBalance) {
+            return res.status(400).json({ error: 'Insufficient balance. Choose another payment method.' });
+        }
+    
+        // Calculate the new wallet balance after deducting the total price
+        const updatedWalletBalance = wallet.walletBalance - totalPrice;
+    
+        // Create order with WALLET payment method
+        const orderData = new Order({
+            userId,
+            products: productsArray,
+            name,
+            email,
+            address: { address, city, pincode, state },
+            paymentMethod: 'WALLET',
+            quantity: productsArray.reduce((sum, product) => sum + product.quantity, 0),
+            totalPrice,
+        });
+    
+        const savedOrder = await orderData.save();
+        if (!savedOrder) throw new Error('Failed to save WALLET order');
+    
+        // Update Wallet balance and add a transaction entry
+        await Wallet.findOneAndUpdate(
+            { userId },
+            {
+                walletBalance: updatedWalletBalance,
+                $push: {
+                    transactions: {
+                        transactionType: 'debit',
+                        amount: totalPrice,
+                        description: 'Order payment using wallet',
+                        date: new Date()
+                    }
+                }
+            }
+        );
+    
+        // Clear the Cart after placing the order
+        await Cart.updateOne(
+            { userId },
+            { $set: { products: [] } }
+        );
+    
+        // Handle referral and wallet logic
+        await handleReferralAndWallet(userId);
+    
+        return res.status(200).json({ message: 'Order Placed using Wallet', payment: 'WALLET' });
+    }
+    
+
       // Handle UPI payment using Razorpay
       else if (payment === 'UPI') {
           const amount = totalPrice * 100; // Amount in paise
