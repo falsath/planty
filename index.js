@@ -7,7 +7,15 @@ dotenv.config({path:'./config.env'});
     
 
 const mongoose = require('mongoose')
-mongoose.connect('mongodb://localhost:27017/Planty')
+// mongoose.connect('mongodb://localhost:27017/Planty')
+// mongoose.connect('mongodb+srv://falsathkoolath:pnbY2ystllTT8d5f@cluster0.vlycy.mongodb.net/')
+mongoose.connect('mongodb+srv://falsathkoolath:pnbY2ystllTT8d5f@cluster0.vlycy.mongodb.net/plantyyy')
+    .then(() => {
+        console.log('Database connected successfully');
+    })
+    .catch(err => {
+        console.error('Database connection error:', err);
+    });
 
 const {errorHandler,notFound}=require('./middleware/errorHandler');
 
