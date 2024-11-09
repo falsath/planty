@@ -248,6 +248,7 @@ const loadProductList = async (req, res) => {
         const skip = (page - 1) * limit;
 
         // Query to count total active products
+        console.log("viewproduct controller")
         const totalCount = await Product.countDocuments({ is_disabled: false });
 
         // Query to fetch active products with pagination
@@ -257,7 +258,7 @@ const loadProductList = async (req, res) => {
             .limit(limit);
 
         // Render the Products view with pagination data
-        res.render('Products', {
+        res.render('products', {
             product: activeProducts,
             currentPage: page,
             totalPages: Math.ceil(totalCount / limit)

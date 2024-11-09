@@ -1,7 +1,8 @@
     
 
 ////
-    
+const userRoute = require('./routes/userRoute')   
+const adminRoute = require('./routes/adminRoute')
 const dotenv = require('dotenv');
 dotenv.config({path:'./config.env'});
 const morgan=require('morgan')
@@ -30,11 +31,11 @@ const session = require('express-session');
 
 
 // for user routes  
-const userRoute = require('./routes/userRoute')
+
 app.use('/',userRoute)
 
 // for admin routes
-const adminRoute = require('./routes/adminRoute')
+
 app.use('/admin',adminRoute)
 
 //error handlermiddleware

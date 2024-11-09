@@ -47,6 +47,7 @@ const verfyLogin = async (req, res) => {
                     res.render('login', { message: 'Email and password is incorrect' })
                 } else {
                     req.session.admin_id = userDate._id
+                    console.log("sessionnnn:", req.session.admin_id )
                     res.redirect('/admin/home')
                 }
 
