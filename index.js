@@ -4,6 +4,7 @@
     
 const dotenv = require('dotenv');
 dotenv.config({path:'./config.env'});
+const morgan=require('morgan')
     
 
 const mongoose = require('mongoose')
@@ -37,6 +38,7 @@ app.use('/admin',adminRoute)
 //error handlermiddleware
 app.use(notFound);
 app.use(errorHandler);
+app.use(morgan('dev'))
 
 
 app.get('*',(req,res)=>{

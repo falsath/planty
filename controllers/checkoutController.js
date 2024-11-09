@@ -232,7 +232,7 @@ if (payment === 'COD' && totalPrice > 1000) {
             }
         );
     
-        // Clear the Cart after placing the order
+        // Clear the Cart after placing the order 
         await Cart.updateOne(
             { userId },
             { $set: { products: [] } }
