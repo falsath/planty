@@ -193,6 +193,7 @@ if (payment === 'COD' && totalPrice > 1000) {
 
 
     if (payment === 'WALLET') {
+        
         const wallet = await Wallet.findOne({ userId });
         if (!wallet || totalPrice > wallet.walletBalance) {
             return res.status(400).json({ error: 'Insufficient balance. Choose another payment method.' });

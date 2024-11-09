@@ -20,8 +20,10 @@ mongoose.connect('mongodb+srv://falsathkoolath:pnbY2ystllTT8d5f@cluster0.vlycy.m
 
 const {errorHandler,notFound}=require('./middleware/errorHandler');
 
+
 const express = require('express')
 const app = express()
+app.use(morgan('dev'))
 
 
 const session = require('express-session');
@@ -38,7 +40,7 @@ app.use('/admin',adminRoute)
 //error handlermiddleware
 app.use(notFound);
 app.use(errorHandler);
-app.use(morgan('dev'))
+
 
 
 app.get('*',(req,res)=>{
