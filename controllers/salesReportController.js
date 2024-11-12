@@ -2,7 +2,7 @@
 const excel = require('exceljs');
 
 const puppeter = require('puppeteer');
-
+const PDFDocument = require('pdfkit');
 const fs = require('fs-extra');
 
 const path = require('path');
@@ -215,93 +215,274 @@ const compile = async function (templateName, data) {
 }
 
 
+
+
+
+
 const exportPdfOrders = async (req, res) => {
   try {
-    let filteredDate = '';
-  
-    const browser = await puppeter.launch({ headless: "true",args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-    console.log(browser)
-
-    const page = await browser.newPage();
     const { startDate, endDate } = req.query;
+    let filteredDate = '';
+
+    // Create a new PDF document
+    const doc = new PDFDocument({
+      size: 'A4',
+      margin: 50
+    });
+
+    // Pipe the PDF to the response
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=orders_report.pdf');
+
     if (startDate && endDate) {
       filteredDate = `${startDate} to ${endDate}`;
-      const orderDatas = await Order.find({ status: 'Delivered',orderPlacedAt: { $gte: new Date(startDate), $lte: new Date(endDate) } }).populate('products.product').lean();
-      console.log('pdf orderDatas', orderDatas);
-      orderDatas.sort((a, b) => new Date(b.orderPlacedAt) - new Date(a.orderPlacedAt));
-      const orderData = orderDatas.map(order => {
-        return {
-          ...order,
-          orderPlacedAt: new Date(order.orderPlacedAt).toLocaleDateString()
-        };
+
+      // Fetch orders filtered by date range
+      const orders = await Order.find({
+        status: 'Delivered',
+        orderPlacedAt: { $gte: new Date(startDate), $lte: new Date(endDate) }
+      }).populate('products.product').exec();
+      orders.sort((a, b) => new Date(b.orderPlacedAt) - new Date(a.orderPlacedAt));
+
+      // Generate the PDF content
+      doc.fontSize(20).text('Orders Report', { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(12).text(`Date Range: ${filteredDate}`);
+      doc.moveDown();
+
+      // Add table headers
+      const headers = [
+        { label: 'Fullname', width: 100 },
+        { label: 'Email', width: 150 },
+        { label: 'Payment Method', width: 100 },
+        { label: 'Status', width: 80 },
+        { label: 'Product Details', width: 200 },
+        { label: 'Address', width: 150 },
+        { label: 'City', width: 100 },
+        { label: 'Pincode', width: 70 },
+        { label: 'State', width: 100 },
+      ];
+
+      // Table header
+      headers.forEach((header, index) => {
+        doc.fontSize(10).text(header.label, {
+          continued: index < headers.length - 1,
+          width: header.width
+        });
       });
+      doc.moveDown();
+
+      // Add a line separator after headers
+      doc.lineWidth(0.5).moveTo(doc.x, doc.y).lineTo(doc.x + 500, doc.y).stroke();
+      doc.moveDown();
+
+      // Add order data
+      orders.forEach(order => {
+        const productDetails = order.products.map(product => {
+          if (product.product) {
+            return `${product.product.name} (Qty: ${product.quantity}, Price: ${product.product.price})`;
+          } else {
+            return "Product not found";
+          }
+        }).join(', ');
+
+        const address = order.address;
+
+        const row = [
+          order.name,
+          order.email,
+          order.paymentMethod,
+          order.status,
+          productDetails,
+          address.address,
+          address.city,
+          address.pincode,
+          address.state,
+        ];
+
+        // Add row to the table
+        row.forEach((item, index) => {
+          doc.fontSize(10).text(item, {
+            continued: index < row.length - 1,
+            width: headers[index].width
+          });
+        });
+        doc.moveDown();
+      });
+
+      // Finalize the document and send it as a response
+      doc.end();
+      doc.pipe(res);
+    } else {
+      filteredDate = 'N/A';
+
+      // Fetch all delivered orders if no date range is provided
+      const orders = await Order.find({ status: 'Delivered' }).populate('products.product').exec();
+      orders.sort((a, b) => new Date(b.orderPlacedAt) - new Date(a.orderPlacedAt));
+
+      // Generate the PDF content
+      doc.fontSize(20).text('Orders Report', { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(12).text(`Date Range: ${filteredDate}`);
+      doc.moveDown();
+
+      // Add table headers
+      const headers = [
+        { label: 'Fullname', width: 100 },
+        { label: 'Email', width: 150 },
+        { label: 'Payment Method', width: 100 },
+        { label: 'Status', width: 80 },
+        { label: 'Product Details', width: 200 },
+        { label: 'Address', width: 150 },
+        { label: 'City', width: 100 },
+        { label: 'Pincode', width: 70 },
+        { label: 'State', width: 100 },
+      ];
+
+      // Table header
+      headers.forEach((header, index) => {
+        doc.fontSize(10).text(header.label, {
+          continued: index < headers.length - 1,
+          width: header.width
+        });
+      });
+      doc.moveDown();
+
+      // Add a line separator after headers
+      doc.lineWidth(0.5).moveTo(doc.x, doc.y).lineTo(doc.x + 500, doc.y).stroke();
+      doc.moveDown();
+
+      // Add order data
+      orders.forEach(order => {
+        const productDetails = order.products.map(product => {
+          if (product.product) {
+            return `${product.product.name} (Qty: ${product.quantity}, Price: ${product.product.price})`;
+          } else {
+            return "Product not found";
+          }
+        }).join(', ');
+
+        const address = order.address;
+
+        const row = [
+          order.name,
+          order.email,
+          order.paymentMethod,
+          order.status,
+          productDetails,
+          address.address,
+          address.city,
+          address.pincode,
+          address.state,
+        ];
+
+        // Add row to the table
+        row.forEach((item, index) => {
+          doc.fontSize(10).text(item, {
+            continued: index < row.length - 1,
+            width: headers[index].width
+          });
+        });
+        doc.moveDown();
+      });
+
+      // Finalize the document and send it as a response
+      doc.end();
+      doc.pipe(res);
+    }
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Error generating PDF');
+  }
+};
+
+// const exportPdfOrders = async (req, res) => {
+//   try {
+//     let filteredDate = '';
   
-      const content = await compile('pdf', { orderData: orderData,filteredDate });
-      console.log('done creating pdf');
-      await page.setContent(content);
+//     const browser = await puppeter.launch({ headless: "true",args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+//     console.log(browser)
 
-      const pdfBuffer = await page.pdf({
-        // path:'output.pdf',
-        format: 'A4',
-        printBackground: true
-      });
+//     const page = await browser.newPage();
+//     const { startDate, endDate } = req.query;
+//     if (startDate && endDate) {
+//       filteredDate = `${startDate} to ${endDate}`;
+//       const orderDatas = await Order.find({ status: 'Delivered',orderPlacedAt: { $gte: new Date(startDate), $lte: new Date(endDate) } }).populate('products.product').lean();
+//       console.log('pdf orderDatas', orderDatas);
+//       orderDatas.sort((a, b) => new Date(b.orderPlacedAt) - new Date(a.orderPlacedAt));
+//       const orderData = orderDatas.map(order => {
+//         return {
+//           ...order,
+//           orderPlacedAt: new Date(order.orderPlacedAt).toLocaleDateString()
+//         };
+//       });
+  
+//       const content = await compile('pdf', { orderData: orderData,filteredDate });
+//       console.log('done creating pdf');
+//       await page.setContent(content);
 
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
+//       const pdfBuffer = await page.pdf({
+//         // path:'output.pdf',
+//         format: 'A4',
+//         printBackground: true
+//       });
 
-      res.send(pdfBuffer);
+//       res.setHeader('Content-Type', 'application/pdf');
+//       res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
+
+//       res.send(pdfBuffer);
 
      
 
-      await browser.close();
+//       await browser.close();
 
-    }
-    else {
-      filteredDate = 'Nill';
-      const orderDatas = await Order.find({ status: 'Delivered' }).populate('products.product').lean();
-      console.log('else pdf orderDatas', orderDatas);
-      orderDatas.sort((a, b) => new Date(b.orderPlacedAt) - new Date(a.orderPlacedAt));
-      const orderData = orderDatas.map(order => {
-        return {
-          ...order,
-          orderPlacedAt: new Date(order.orderPlacedAt).toLocaleDateString()
-        };
-      });
+//     }
+//     else {
+//       filteredDate = 'Nill';
+//       const orderDatas = await Order.find({ status: 'Delivered' }).populate('products.product').lean();
+//       console.log('else pdf orderDatas', orderDatas);
+//       orderDatas.sort((a, b) => new Date(b.orderPlacedAt) - new Date(a.orderPlacedAt));
+//       const orderData = orderDatas.map(order => {
+//         return {
+//           ...order,
+//           orderPlacedAt: new Date(order.orderPlacedAt).toLocaleDateString()
+//         };
+//       });
 
 
-      // const content = await compile('pdf', { orderData: orderData ,filteredDate});
+//       // const content = await compile('pdf', { orderData: orderData ,filteredDate});
 
-      const content = await compile('pdf', { orderData: orderData, filteredDate });
-console.log('HTML Content for PDF:', content); // Log the content
+//       const content = await compile('pdf', { orderData: orderData, filteredDate });
+// console.log('HTML Content for PDF:', content); // Log the content
 
-      await page.setContent(content);
+//       await page.setContent(content);
 
-      const pdfBuffer = await page.pdf({
-         path:'output.pdf',
-        format: 'A4',
-        printBackground: true
-      });
+//       const pdfBuffer = await page.pdf({
+//          path:'output.pdf',
+//         format: 'A4',
+//         printBackground: true
+//       });
 
-      console.log("PDF saved successfully at output.pdf")
+//       console.log("PDF saved successfully at output.pdf")
 
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
-      res.setHeader('Content-Length', pdfBuffer.length);
+//       res.setHeader('Content-Type', 'application/pdf');
+//       res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
+//       res.setHeader('Content-Length', pdfBuffer.length);
 
-      // res.send(pdfBuffer);
-      res.end(pdfBuffer, 'binary'); 
+//       // res.send(pdfBuffer);
+//       res.end(pdfBuffer, 'binary'); 
 
-      console.log('done creating pdf');
+//       console.log('done creating pdf');
 
-      await browser.close();
+//       await browser.close();
 
-    }
+//     }
 
-  }
-  catch (err) {
-    console.log(err.message);
-  }
-}
+//   }
+//   catch (err) {
+//     console.log(err.message);
+//   }
+// }
 
 module.exports = {
   loadReport,
