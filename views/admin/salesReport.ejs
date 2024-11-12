@@ -158,7 +158,10 @@
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
             const pdfUrl = `/admin/export-ordersPdf?startDate=${startDate}&endDate=${endDate}`;
+            console.log("pdfurllll0",pdfUrl);
             window.location.href = pdfUrl;
+            console.log("pdfurllll",pdfUrl);
+            
         }
 
         document.getElementById('filterForm').addEventListener('submit', function (event) {

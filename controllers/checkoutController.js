@@ -66,7 +66,9 @@ const placeOrder = async (req, res) => {
           return res.redirect('/allProduct');
       }
 
-      const productsArray = cartData.products.map(product => ({
+
+     
+       const productsArray = cartData.products.map(product => ({
           product: product.product._id,
           price: product.product.price,
           quantity: product.quantity,

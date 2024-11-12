@@ -27,6 +27,19 @@
 
   <div class="container">
     <div class="checkout-box">
+
+<!-- ....................................... -->
+
+<% if (typeof cartUpdateMessage !== 'undefined') { %>
+  <div class="alert alert-warning" role="alert">
+    <%= cartUpdateMessage %>
+  </div>
+  <% delete req.session.cartUpdateMessage; %>
+<% } %>
+
+
+
+<!-- ............................................... -->
       <div class="py-5 text-center">
         <h2 style="font-weight: bold;">CHECKOUT</h2>
         <!-- <p class="lead">Below is an example form built entirely with Bootstrap’s form controls. Each required form group has a validation state that can be triggered by attempting to submit the form without completing it.</p> -->
@@ -186,73 +199,7 @@
 
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
-    // document.addEventListener('DOMContentLoaded', function () {
-    //   var form = document.querySelector('.needs-validation');
-    //   console.log("Form Element:", form);
-    //   var addressSelect = document.getElementById('address');
-    //   var fullNameInput = document.getElementById('form3Example1n');
-
-    //   addressSelect.addEventListener('change', function () {
-    //     if (addressSelect.value !== "") {
-    //       var selectedAddress = addressSelect.options[addressSelect.selectedIndex];
-
-    //       fullNameInput.value = selectedAddress.dataset.name;
-    //       document.getElementById('form3Example8').value = selectedAddress.dataset.address;
-    //       document.querySelector('[name="state"]').value = selectedAddress.dataset.state;
-    //       document.querySelector('[name="city"]').value = selectedAddress.dataset.city;
-    //       document.getElementById('form3Example3').value = selectedAddress.dataset.pincode;
-    //       document.getElementById('form3Example2').value = selectedAddress.dataset.email;
-    //     } else {
-    //       fullNameInput.value = '';
-    //       document.getElementById('form3Example8').value = '';
-    //       document.querySelector('[name="state"]').value = '';
-    //       document.querySelector('[name="city"]').value = '';
-    //       document.getElementById('form3Example3').value = '';
-    //       document.getElementById('form3Example2').value = '';
-    //     }
-    //   });
-    // });
-
-
-//     document.addEventListener('DOMContentLoaded', function () {
-//   var form = document.querySelector('.needs-validation');
-//   var addressSelect = document.getElementById('address');
-//   var fullNameInput = document.getElementById('form3Example1n');
-//   var submitButton = document.querySelector('button[type="submit"]');
-
-//   // Disable the button initially if no address is selected
-//   if (!addressSelect.value) {
-//     submitButton.disabled = true;
-//   }
-
-//   addressSelect.addEventListener('change', function () {
-//     if (addressSelect.value !== "") {
-//       var selectedAddress = addressSelect.options[addressSelect.selectedIndex];
-
-//       fullNameInput.value = selectedAddress.dataset.name;
-//       document.getElementById('form3Example8').value = selectedAddress.dataset.address;
-//       document.querySelector('[name="state"]').value = selectedAddress.dataset.state;
-//       document.querySelector('[name="city"]').value = selectedAddress.dataset.city;
-//       document.getElementById('form3Example3').value = selectedAddress.dataset.pincode;
-//       document.getElementById('form3Example2').value = selectedAddress.dataset.email;
-
-//       // Enable submit button when a valid address is selected
-//       submitButton.disabled = false;
-
-//     } else {
-//       fullNameInput.value = '';
-//       document.getElementById('form3Example8').value = '';
-//       document.querySelector('[name="state"]').value = '';
-//       document.querySelector('[name="city"]').value = '';
-//       document.getElementById('form3Example3').value = '';
-//       document.getElementById('form3Example2').value = '';
-
-//       // Disable the submit button if no address is selected
-//       submitButton.disabled = true;
-//     }
-//   });
-// });
-
+    
 
 
 

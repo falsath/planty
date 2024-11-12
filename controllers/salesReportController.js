@@ -219,7 +219,7 @@ const exportPdfOrders = async (req, res) => {
   try {
     let filteredDate = '';
   
-    const browser = await puppeter.launch({ headless: "true" });
+    const browser = await puppeter.launch({ headless: "true",args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     console.log(browser)
 
     const page = await browser.newPage();
@@ -237,7 +237,7 @@ const exportPdfOrders = async (req, res) => {
       });
   
       const content = await compile('pdf', { orderData: orderData,filteredDate });
-
+      console.log('done creating pdf');
       await page.setContent(content);
 
       const pdfBuffer = await page.pdf({
@@ -251,7 +251,7 @@ const exportPdfOrders = async (req, res) => {
 
       res.send(pdfBuffer);
 
-      console.log('done creating pdf');
+     
 
       await browser.close();
 

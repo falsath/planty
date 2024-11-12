@@ -1,0 +1,88 @@
+const exportPdfOrders = async (req, res) => {
+    try {
+      let filteredDate = '';
+    
+      const browser = await puppeter.launch({ headless: "true" });
+      console.log(browser)
+  
+      const page = await browser.newPage();
+      const { startDate, endDate } = req.query;
+      if (startDate && endDate) {
+        filteredDate = `${startDate} to ${endDate}`;
+        const orderDatas = await Order.find({ status: 'Delivered',orderPlacedAt: { $gte: new Date(startDate), $lte: new Date(endDate) } }).populate('products.product').lean();
+        console.log('pdf orderDatas', orderDatas);
+        orderDatas.sort((a, b) => new Date(b.orderPlacedAt) - new Date(a.orderPlacedAt));
+        const orderData = orderDatas.map(order => {
+          return {
+            ...order,
+            orderPlacedAt: new Date(order.orderPlacedAt).toLocaleDateString()
+          };
+        });
+    
+        const content = await compile('pdf', { orderData: orderData,filteredDate });
+        console.log('done creating pdf');
+        await page.setContent(content);
+  
+        const pdfBuffer = await page.pdf({
+          // path:'output.pdf',
+          format: 'A4',
+          printBackground: true
+        });
+  
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
+  
+        res.send(pdfBuffer);
+  
+       
+  
+        await browser.close();
+  
+      }
+      else {
+        filteredDate = 'Nill';
+        const orderDatas = await Order.find({ status: 'Delivered' }).populate('products.product').lean();
+        console.log('else pdf orderDatas', orderDatas);
+        orderDatas.sort((a, b) => new Date(b.orderPlacedAt) - new Date(a.orderPlacedAt));
+        const orderData = orderDatas.map(order => {
+          return {
+            ...order,
+            orderPlacedAt: new Date(order.orderPlacedAt).toLocaleDateString()
+          };
+        });
+  
+  
+        // const content = await compile('pdf', { orderData: orderData ,filteredDate});
+  
+        const content = await compile('pdf', { orderData: orderData, filteredDate });
+  console.log('HTML Content for PDF:', content); // Log the content
+  
+        await page.setContent(content);
+  
+        const pdfBuffer = await page.pdf({
+           path:'output.pdf',
+          format: 'A4',
+          printBackground: true
+        });
+  
+        console.log("PDF saved successfully at output.pdf")
+  
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
+        res.setHeader('Content-Length', pdfBuffer.length);
+  
+        // res.send(pdfBuffer);
+        res.end(pdfBuffer, 'binary'); 
+  
+        console.log('done creating pdf');
+  
+        await browser.close();
+  
+      }
+  
+    }
+    catch (err) {
+      console.log(err.message);
+    }
+  }
+  
